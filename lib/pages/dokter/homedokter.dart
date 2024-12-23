@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:kesehatan/pages/dokter/artikel.dart';
+import 'package:kesehatan/pages/dokter/chat.dart';
+import 'package:kesehatan/pages/dokter/profile.dart';
+import 'package:kesehatan/pages/dokter/program.dart';
 import 'package:kesehatan/pages/login.dart';
-import 'package:kesehatan/pages/admin/dokter.dart';
-import 'package:kesehatan/pages/admin/artikel.dart';
-import 'package:kesehatan/pages/admin/user.dart';
-import 'package:kesehatan/pages/admin/jadwal.dart';
 
-class HomeAdmin extends StatefulWidget {
+class HomeDokter extends StatefulWidget {
   @override
-  _HomeAdminState createState() => _HomeAdminState();
+  _HomeDokterState createState() => _HomeDokterState();
 }
 
-class _HomeAdminState extends State<HomeAdmin> {
+class _HomeDokterState extends State<HomeDokter> {
   int _selectedIndex = 0; // Untuk mengatur tab yang dipilih di sidebar
 
   // Daftar menu sidebar
   final List<String> menuTitles = [
-    'Dokter',
-    'Jadwal',
-    'Artikel',
-    'User',
+    'CRUD Artikel',
+    'Chat',
+    'CRUD Program',
+    'Profile',
     'Logout',
   ];
 
   // Daftar widget untuk setiap halaman
   final List<Widget> menuPages = [
-    DoctorPage(),
-    SchedulePage(),
-    ArticlePage(),
-    DeleteUserPage(),
+    ArtikelPage(),
+    ChatPage(),
+    ProgramPage(),
+    ProfilePage(),
   ];
 
   @override
