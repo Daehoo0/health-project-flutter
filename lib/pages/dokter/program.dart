@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan/pages/dokter/addprogram.dart';
+import 'package:health_project_flutter/pages/dokter/addprogram.dart';
 
 class ProgramPage extends StatelessWidget {
   @override

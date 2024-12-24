@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan/pages/admin/addartikel.dart';
+import 'package:health_project_flutter/pages/admin/addartikel.dart';
 
 class ArticlePage extends StatelessWidget {
   @override

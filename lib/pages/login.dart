@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:kesehatan/pages/register.dart';
-import 'package:kesehatan/pages/admin/homeadmin.dart';
-import 'package:kesehatan/pages/user/homeuser.dart';
-import 'package:kesehatan/pages/dokter/homedokter.dart';
+import 'package:health_project_flutter/pages/register.dart';
+import 'package:health_project_flutter/pages/admin/homeadmin.dart';
+import 'package:health_project_flutter/pages/user/homeuser.dart';
+import 'package:health_project_flutter/pages/dokter/homedokter.dart';
 
 class LoginScreen extends StatefulWidget {
   @override

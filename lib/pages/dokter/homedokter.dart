@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan/pages/dokter/artikel.dart';
-import 'package:kesehatan/pages/dokter/chat.dart';
-import 'package:kesehatan/pages/dokter/profile.dart';
-import 'package:kesehatan/pages/dokter/program.dart';
-import 'package:kesehatan/pages/login.dart';
+import 'package:health_project_flutter/pages/dokter/artikel.dart';
+import 'package:health_project_flutter/pages/dokter/chat.dart';
+import 'package:health_project_flutter/pages/dokter/profile.dart';
+import 'package:health_project_flutter/pages/dokter/program.dart';
+import 'package:health_project_flutter/pages/login.dart';
 
 class HomeDokter extends StatefulWidget {
   @override

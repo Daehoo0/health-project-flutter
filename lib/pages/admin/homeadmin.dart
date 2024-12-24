@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan/pages/login.dart';
-import 'package:kesehatan/pages/admin/dokter.dart';
-import 'package:kesehatan/pages/admin/artikel.dart';
-import 'package:kesehatan/pages/admin/user.dart';
-import 'package:kesehatan/pages/admin/jadwal.dart';
+import 'package:health_project_flutter/pages/login.dart';
+import 'package:health_project_flutter/pages/admin/dokter.dart';
+import 'package:health_project_flutter/pages/admin/artikel.dart';
+import 'package:health_project_flutter/pages/admin/user.dart';
+import 'package:health_project_flutter/pages/admin/jadwal.dart';
 
 class HomeAdmin extends StatefulWidget {
   @override

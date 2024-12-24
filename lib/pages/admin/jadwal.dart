@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan/pages/admin/addjadwal.dart';
+import 'package:health_project_flutter/pages/admin/addjadwal.dart';
 
 class SchedulePage extends StatelessWidget {
   @override
