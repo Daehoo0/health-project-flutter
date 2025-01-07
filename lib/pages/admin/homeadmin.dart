@@ -6,6 +6,10 @@ import 'package:health_project_flutter/pages/admin/user.dart';
 import 'package:health_project_flutter/pages/admin/jadwal.dart';
 
 class HomeAdmin extends StatefulWidget {
+  final Map<String, dynamic> userData;
+
+  HomeAdmin({required this.userData});
+
   @override
   _HomeAdminState createState() => _HomeAdminState();
 }

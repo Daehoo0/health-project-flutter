@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:health_project_flutter/pages/login.dart';
 
 class HomeUser extends StatefulWidget {
+  final Map<String, dynamic> userData; // Tambahkan parameter userData
+
+  HomeUser({required this.userData}); // Pastikan parameter bersifat required
+
   @override
   _HomeUserState createState() => _HomeUserState();
 }
@@ -9,32 +13,41 @@ class HomeUser extends StatefulWidget {
 class _HomeUserState extends State<HomeUser> {
   int _selectedIndex = 0;
 
-  // Daftar halaman
-  final List<Widget> _pages = [
-    AddFoodPage(),
-    CalorieCounterPage(),
-    ChatConsultationPage(),
-    SearchDoctorPage(),
-    ProgramListPage(),
-    TopUpPage(),
-    ArticleListPage(),
-    ProfilePage(),
-  ];
-
-  // Daftar judul navbar
-  final List<String> _pageTitles = [
-    'Tambah Makanan',
-    'Hitung Kalori',
-    'Konsultasi',
-    'Cari Dokter',
-    'Program',
-    'Top Up Saldo',
-    'Artikel',
-    'Profile',
-  ];
+  // Fungsi untuk mengupdate data pengguna
+  void _updateUserData(Map<String, dynamic> updatedData) {
+    setState(() {
+      widget.userData.addAll(updatedData); // Update data pengguna
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Daftar halaman, gunakan widget.userData untuk ProfilePage
+    final List<Widget> _pages = [
+      AddFoodPage(),
+      CalorieCounterPage(),
+      ChatConsultationPage(),
+      SearchDoctorPage(),
+      ProgramListPage(),
+      TopUpPage(),
+      ArticleListPage(),
+      ProfilePage(
+        userData: widget.userData, // Berikan data pengguna
+        updateUserData: _updateUserData, // Berikan fungsi update
+      ),
+    ];
+
+    final List<String> _pageTitles = [
+      'Tambah Makanan',
+      'Hitung Kalori',
+      'Konsultasi',
+      'Cari Dokter',
+      'Program',
+      'Top Up Saldo',
+      'Artikel',
+      'Profile',
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_pageTitles[_selectedIndex]),
@@ -209,66 +222,70 @@ class ArticleDetailPage extends StatelessWidget {
 
 // Halaman Profile
 class ProfilePage extends StatelessWidget {
-  // Data dummy user (dapat diganti dengan data dinamis dari database)
-  final Map<String, String> userData = {
-    'Nama': 'John Doe',
-    'Email': 'johndoe@example.com',
-    'No. HP': '081234567890',
-  };
+  final Map<String, dynamic> userData;
+  final Function(Map<String, dynamic>) updateUserData;
+
+  ProfilePage({required this.userData, required this.updateUserData});
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, String> labelMapping = {
+      'name': 'Nama Lengkap',
+      'email': 'Email',
+      'gender': 'Gender',
+      'height': 'Tinggi Badan',
+      'weight': 'Berat Badan',
+    };
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Menampilkan data user
             Text(
               'Data Profil',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 16),
-            ...userData.entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Text(
-                  '${entry.key}: ${entry.value}',
-                  style: TextStyle(fontSize: 18),
-                ),
-              );
+            ...labelMapping.keys.map((key) {
+              if (userData.containsKey(key)) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Text(
+                    '${labelMapping[key]}: ${userData[key]}',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                );
+              }
+              return Container();
             }).toList(),
             SizedBox(height: 32),
-            // Tombol Update Profile
             ElevatedButton(
               onPressed: () {
-                // Navigasi ke halaman update profile
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UpdateProfilePage()),
+                  MaterialPageRoute(
+                    builder: (context) => UpdateProfilePage(
+                      userData: userData,
+                      updateUserData: updateUserData,
+                    ),
+                  ),
                 );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
               child: Text('Update Profile'),
             ),
             SizedBox(height: 16),
-            // Tombol Logout
             ElevatedButton(
               onPressed: () {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginScreen(), // Halaman Login
-                  ),
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
                       (route) => false,
                 );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: Text('Logout'),
             ),
           ],
@@ -278,11 +295,29 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-// Halaman Update Profile
-class UpdateProfilePage extends StatelessWidget {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
+class UpdateProfilePage extends StatefulWidget {
+  final Map<String, dynamic> userData;
+  final Function(Map<String, dynamic>) updateUserData; // Callback untuk mengupdate data
+
+  UpdateProfilePage({required this.userData, required this.updateUserData});
+
+  @override
+  _UpdateProfilePageState createState() => _UpdateProfilePageState();
+}
+
+class _UpdateProfilePageState extends State<UpdateProfilePage> {
+  late String selectedGender;
+  final TextEditingController heightController = TextEditingController();
+  final TextEditingController weightController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Mengisi data awal dari userData
+    selectedGender = widget.userData['gender'] ?? 'Laki-laki';
+    heightController.text = widget.userData['height']?.toString() ?? '';
+    weightController.text = widget.userData['weight']?.toString() ?? '';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -295,29 +330,42 @@ class UpdateProfilePage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Input field untuk Nama
-            TextField(
-              controller: nameController,
+            // Dropdown untuk memilih gender
+            DropdownButtonFormField<String>(
+              value: selectedGender,
+              onChanged: (newValue) {
+                setState(() {
+                  selectedGender = newValue!;
+                });
+              },
               decoration: InputDecoration(
-                labelText: 'Nama',
+                labelText: 'Gender',
+                border: OutlineInputBorder(),
+              ),
+              items: ['Laki-laki', 'Perempuan']
+                  .map((gender) => DropdownMenuItem(
+                value: gender,
+                child: Text(gender),
+              ))
+                  .toList(),
+            ),
+            SizedBox(height: 16),
+            // Input field untuk tinggi badan
+            TextField(
+              controller: heightController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Tinggi Badan (cm)',
                 border: OutlineInputBorder(),
               ),
             ),
             SizedBox(height: 16),
-            // Input field untuk Email
+            // Input field untuk berat badan
             TextField(
-              controller: emailController,
+              controller: weightController,
+              keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Input field untuk No. HP
-            TextField(
-              controller: phoneController,
-              decoration: InputDecoration(
-                labelText: 'No. HP',
+                labelText: 'Berat Badan (kg)',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -325,8 +373,14 @@ class UpdateProfilePage extends StatelessWidget {
             // Tombol Simpan
             ElevatedButton(
               onPressed: () {
-                // Logika menyimpan perubahan profile
-                // Simpan data ke database atau backend
+                // Mengupdate userData dengan nilai baru
+                widget.updateUserData({
+                  'gender': selectedGender,
+                  'height': double.tryParse(heightController.text) ?? 0.0,
+                  'weight': double.tryParse(weightController.text) ?? 0.0,
+                });
+
+                // Menampilkan SnackBar dan kembali ke halaman profil
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Profil berhasil diperbarui!')),
                 );

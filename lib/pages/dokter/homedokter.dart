@@ -6,6 +6,10 @@ import 'package:health_project_flutter/pages/dokter/program.dart';
 import 'package:health_project_flutter/pages/login.dart';
 
 class HomeDokter extends StatefulWidget {
+  final Map<String, dynamic> userData;
+
+  HomeDokter({required this.userData});
+
   @override
   _HomeDokterState createState() => _HomeDokterState();
 }

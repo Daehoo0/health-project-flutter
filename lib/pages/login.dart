@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
 import 'package:health_project_flutter/pages/register.dart';
 import 'package:health_project_flutter/pages/admin/homeadmin.dart';
@@ -13,47 +15,88 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void _login() {
+  Future<void> _login() async {
     final String email = emailController.text.trim();
     final String password = passwordController.text.trim();
 
-    if (email == 'admin' && password == 'admin') {
-      // Navigate to HomeAdmin page
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomeAdmin()),
-      );
-    } else if (email == 'user' && password == 'user') {
-      // Navigate to HomeUser page
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomeUser()),
-      );
-    } else if (email == 'dokter' && password == 'dokter') {
-      // Navigate to HomeDokter page
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomeDokter()),
-      );
-    } else {
-      // Show error dialog
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Login Gagal'),
-            content: Text('Email atau Password salah.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorDialog('Email dan password tidak boleh kosong!');
+      return;
     }
+
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      String uid = userCredential.user!.uid;
+
+      // Cek table users
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeUser(userData: userData), // Berikan userData
+          ),
+        );
+        return;
+      }
+
+      // Cek table doctors
+      DocumentSnapshot doctorDoc = await _firestore.collection('doctors').doc(uid).get();
+      if (doctorDoc.exists) {
+        Map<String, dynamic> doctorData = doctorDoc.data() as Map<String, dynamic>;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeDokter(userData: doctorData), // Berikan userData
+          ),
+        );
+        return;
+      }
+
+      // Cek table admins
+      DocumentSnapshot adminDoc = await _firestore.collection('admins').doc(uid).get();
+      if (adminDoc.exists) {
+        Map<String, dynamic> adminData = adminDoc.data() as Map<String, dynamic>;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeAdmin(userData: adminData), // Berikan userData
+          ),
+        );
+        return;
+      }
+
+      // Jika akun tidak ditemukan
+      _showErrorDialog('Akun tidak ditemukan!');
+    } on FirebaseAuthException catch (e) {
+      _showErrorDialog(e.message ?? 'Login gagal! Silakan coba lagi.');
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Login Gagal'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -62,16 +105,14 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Main content
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Animated doctor illustration
                   Lottie.asset(
-                    'lib/assets/login.json', // Ganti dengan path file dokter Lottie Anda
+                    'lib/assets/login.json',
                     height: 150,
                   ),
                   SizedBox(height: 20),
@@ -84,7 +125,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  // Email field
                   TextField(
                     controller: emailController,
                     decoration: InputDecoration(
@@ -96,7 +136,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   SizedBox(height: 15),
-                  // Password field
                   TextField(
                     controller: passwordController,
                     obscureText: true,
@@ -109,7 +148,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  // Login button
                   ElevatedButton(
                     onPressed: _login,
                     style: ElevatedButton.styleFrom(
@@ -128,7 +166,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   SizedBox(height: 15),
-                  // Links
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -149,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(width: 10),
                       GestureDetector(
                         onTap: () {
-                          // Navigate to forgot password page
+                          // Navigasi ke halaman lupa password
                         },
                         child: Text(
                           'Lupa Password',
