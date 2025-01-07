@@ -27,6 +27,18 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    // Periksa apakah email dan password sesuai untuk admin
+    if (email == 'admin' && password == 'admin') {
+      // Langsung arahkan ke HomeAdmin jika admin
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeAdmin(userData: {}), // Anda bisa memberikan data dummy untuk admin
+        ),
+      );
+      return;
+    }
+
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -56,19 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => HomeDokter(userData: doctorData), // Berikan userData
-          ),
-        );
-        return;
-      }
-
-      // Cek table admins
-      DocumentSnapshot adminDoc = await _firestore.collection('admins').doc(uid).get();
-      if (adminDoc.exists) {
-        Map<String, dynamic> adminData = adminDoc.data() as Map<String, dynamic>;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeAdmin(userData: adminData), // Berikan userData
           ),
         );
         return;

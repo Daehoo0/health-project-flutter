@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:health_project_flutter/pages/login.dart';
 
@@ -372,25 +373,59 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
             SizedBox(height: 32),
             // Tombol Simpan
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 // Mengupdate userData dengan nilai baru
-                widget.updateUserData({
+                final updatedData = {
                   'gender': selectedGender,
                   'height': double.tryParse(heightController.text) ?? 0.0,
                   'weight': double.tryParse(weightController.text) ?? 0.0,
-                });
+                };
 
-                // Menampilkan SnackBar dan kembali ke halaman profil
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Profil berhasil diperbarui!')),
-                );
-                Navigator.pop(context); // Kembali ke halaman profile
+                // Mendapatkan email dari userData
+                String userEmail = widget.userData['email'];
+                print('User Email: $userEmail');  // Menampilkan email di konsol
+
+                try {
+                  // Mencari pengguna berdasarkan email
+                  var userQuerySnapshot = await FirebaseFirestore.instance
+                      .collection('users')
+                      .where('email', isEqualTo: userEmail)
+                      .get();
+
+                  if (userQuerySnapshot.docs.isNotEmpty) {
+                    // Mengambil ID dokumen pengguna yang ditemukan
+                    String userId = userQuerySnapshot.docs.first.id;
+                    print('User ID ditemukan: $userId');
+
+                    // Update data pengguna di Firestore
+                    await FirebaseFirestore.instance.collection('users').doc(userId).update(updatedData);
+
+                    // Mengupdate data di UI
+                    widget.updateUserData(updatedData);
+
+                    // Menampilkan SnackBar dan kembali ke halaman profil
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Profil berhasil diperbarui!')),
+                    );
+                    Navigator.pop(context); // Kembali ke halaman profile
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Pengguna dengan email tersebut tidak ditemukan!')),
+                    );
+                  }
+                } catch (e) {
+                  // Menangani kesalahan jika terjadi
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Terjadi kesalahan saat memperbarui profil')),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
               ),
               child: Text('Simpan'),
-            ),
+            )
+            ,
           ],
         ),
       ),
