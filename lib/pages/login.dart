@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final String password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      _showErrorDialog('Email dan password tidak boleh kosong!');
+      _showErrorDialog('Email dan kata sandi tidak boleh kosong!');
       return;
     }
 
@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'Kata Sandi',
                       prefixIcon: Icon(Icons.lock, color: Colors.teal),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -188,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Navigasi ke halaman lupa password
                         },
                         child: Text(
-                          'Lupa Password',
+                          'Lupa Kata Sandi',
                           style: TextStyle(color: Colors.teal),
                         ),
                       ),

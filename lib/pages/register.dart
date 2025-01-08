@@ -30,12 +30,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String weight = _weightController.text.trim();
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || height.isEmpty || weight.isEmpty) {
-      _showMessage('Semua field harus diisi');
+      _showMessage('Semua field harus diisi!');
       return;
     }
 
     if (password != confirmPassword) {
-      _showMessage('Password dan konfirmasi password tidak cocok');
+      _showMessage('Password dan konfirmasi password tidak cocok!');
       return;
     }
 
@@ -51,6 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'gender': _selectedGender,
         'height': double.parse(height),
         'weight': double.parse(weight),
+        'saldo': 0,
         'role': 'user',
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -127,7 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: 'Kata Sandi',
                         prefixIcon: Icon(Icons.lock, color: Colors.teal),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -139,7 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _confirmPasswordController,
                       obscureText: true,
                       decoration: InputDecoration(
-                        labelText: 'Konfirmasi Password',
+                        labelText: 'Konfirmasi Kata Sandi',
                         prefixIcon: Icon(Icons.lock_outline, color: Colors.teal),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
