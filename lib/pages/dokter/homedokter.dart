@@ -15,13 +15,13 @@ class HomeDokter extends StatefulWidget {
 }
 
 class _HomeDokterState extends State<HomeDokter> {
-  int _selectedIndex = 0; // Untuk mengatur tab yang dipilih di sidebar
+  int _selectedIndex = 0;
 
   // Daftar menu sidebar
   final List<String> menuTitles = [
-    'CRUD Artikel',
+    'Artikel',
     'Chat',
-    'CRUD Program',
+    'Program',
     'Profile',
     'Logout',
   ];
@@ -37,25 +37,26 @@ class _HomeDokterState extends State<HomeDokter> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Row(
         children: [
-          // Sidebar
+          // Sidebar dengan desain lebih elegan
           Container(
             width: 250,
-            color: Colors.teal,
+            color: Colors.teal.shade800,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header di sidebar
                 Container(
-                  height: 100,
-                  color: Colors.teal.shade700,
+                  height: 120,
+                  color: Colors.teal.shade600,
                   child: Center(
                     child: Text(
-                      'Admin Panel',
+                      'Dokter Panel',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -68,7 +69,7 @@ class _HomeDokterState extends State<HomeDokter> {
                     itemBuilder: (context, index) {
                       return ListTile(
                         leading: Icon(
-                          Icons.circle,
+                          _getIconForMenu(index),
                           color: _selectedIndex == index
                               ? Colors.white
                               : Colors.teal.shade100,
@@ -79,22 +80,22 @@ class _HomeDokterState extends State<HomeDokter> {
                             color: _selectedIndex == index
                                 ? Colors.white
                                 : Colors.teal.shade100,
+                            fontSize: 16,
                           ),
                         ),
                         selected: _selectedIndex == index,
-                        selectedTileColor: Colors.teal.shade600,
+                        selectedTileColor: Colors.teal.shade700,
                         onTap: () {
                           if (menuTitles[index] == 'Logout') {
                             // Logika logout
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => LoginScreen(), // Halaman Login
+                                builder: (context) => LoginScreen(),
                               ),
                                   (route) => false,
                             );
                           } else {
-                            // Perbarui halaman yang ditampilkan
                             setState(() {
                               _selectedIndex = index;
                             });
@@ -110,14 +111,31 @@ class _HomeDokterState extends State<HomeDokter> {
           // Konten utama
           Expanded(
             child: Container(
+              padding: EdgeInsets.all(20),
               color: Colors.grey.shade100,
               child: _selectedIndex < menuPages.length
                   ? menuPages[_selectedIndex]
-                  : Container(),// Tampilkan halaman sesuai tab
+                  : Container(),
             ),
           ),
         ],
       ),
     );
+  }
+
+  // Fungsi untuk mendapatkan ikon sesuai menu
+  IconData _getIconForMenu(int index) {
+    switch (index) {
+      case 0:
+        return Icons.article;
+      case 1:
+        return Icons.chat;
+      case 2:
+        return Icons.assignment;
+      case 3:
+        return Icons.person;
+      default:
+        return Icons.exit_to_app;
+    }
   }
 }

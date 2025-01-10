@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class TambahProgramPage extends StatelessWidget {
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
   final TextEditingController _durasiController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +56,21 @@ class TambahProgramPage extends StatelessWidget {
                 String durasi = _durasiController.text;
 
                 if (nama.isNotEmpty && deskripsi.isNotEmpty && durasi.isNotEmpty) {
-                  // Simpan data ke database atau backend
-                  Navigator.pop(context); // Kembali ke halaman CRUD Program
+                  // Menyimpan data ke Firestore
+                  _firestore.collection('programdokter').add({
+                    'nama': nama,
+                    'deskripsi': deskripsi,
+                    'durasi': durasi,
+                    'created_at': FieldValue.serverTimestamp(),
+                  }).then((value) {
+                    // Kembali ke halaman sebelumnya setelah berhasil menyimpan
+                    Navigator.pop(context);
+                  }).catchError((error) {
+                    // Menampilkan pesan error jika gagal menyimpan
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Gagal menyimpan data: $error')),
+                    );
+                  });
                 } else {
                   // Tampilkan pesan error jika input kosong
                   ScaffoldMessenger.of(context).showSnackBar(

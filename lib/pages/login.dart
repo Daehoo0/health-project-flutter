@@ -47,27 +47,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
       String uid = userCredential.user!.uid;
 
-      // Cek table users
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-      if (userDoc.exists) {
-        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+      // Cek apakah pengguna adalah dokter
+      DocumentSnapshot doctorDoc = await _firestore.collection('dokter').doc(uid).get();
+      if (doctorDoc.exists) {
+        // Jika ditemukan di collection 'doctors', arahkan ke HomeDokter
+        Map<String, dynamic> doctorData = doctorDoc.data() as Map<String, dynamic>;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomeUser(userData: userData), // Berikan userData
+            builder: (context) => HomeDokter(userData: doctorData), // Berikan doctorData
           ),
         );
         return;
       }
 
-      // Cek table doctors
-      DocumentSnapshot doctorDoc = await _firestore.collection('doctors').doc(uid).get();
-      if (doctorDoc.exists) {
-        Map<String, dynamic> doctorData = doctorDoc.data() as Map<String, dynamic>;
+      // Cek apakah pengguna adalah pasien
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        // Jika ditemukan di collection 'users', arahkan ke HomeUser
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomeDokter(userData: doctorData), // Berikan userData
+            builder: (context) => HomeUser(userData: userData), // Berikan userData
           ),
         );
         return;
@@ -85,12 +87,12 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Login Gagal'),
+          title: Text('Login Gagal', style: TextStyle(color: Colors.red)),
           content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('OK'),
+              child: Text('OK', style: TextStyle(color: Colors.teal)),
             ),
           ],
         );
@@ -118,9 +120,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'Selamat Datang!',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
                       color: Colors.teal,
+                      letterSpacing: 1.5,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -128,10 +131,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: emailController,
                     decoration: InputDecoration(
                       labelText: 'Email',
+                      labelStyle: TextStyle(color: Colors.teal),
                       prefixIcon: Icon(Icons.email, color: Colors.teal),
+                      filled: true,
+                      fillColor: Colors.teal.withOpacity(0.1),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
                       ),
+                      contentPadding: EdgeInsets.symmetric(vertical: 20),
                     ),
                   ),
                   SizedBox(height: 15),
@@ -140,10 +148,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: 'Kata Sandi',
+                      labelStyle: TextStyle(color: Colors.teal),
                       prefixIcon: Icon(Icons.lock, color: Colors.teal),
+                      filled: true,
+                      fillColor: Colors.teal.withOpacity(0.1),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
                       ),
+                      contentPadding: EdgeInsets.symmetric(vertical: 20),
                     ),
                   ),
                   SizedBox(height: 20),
@@ -158,10 +171,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         horizontal: 50,
                         vertical: 15,
                       ),
+                      shadowColor: Colors.teal.withOpacity(0.5),
+                      elevation: 5,
                     ),
                     child: Text(
                       'Login',
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   SizedBox(height: 15),

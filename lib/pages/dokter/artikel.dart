@@ -1,17 +1,27 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:health_project_flutter/pages/dokter/addartikel.dart';
+import 'addartikel.dart'; // Halaman untuk menambah artikel
 
-class ArtikelPage extends StatelessWidget {
+class ArtikelPage extends StatefulWidget {
+  @override
+  _ArtikelPageState createState() => _ArtikelPageState();
+}
+
+class _ArtikelPageState extends State<ArtikelPage> {
+  // Referensi ke koleksi "artikel" di Firestore
+  final CollectionReference artikelCollection =
+  FirebaseFirestore.instance.collection('artikel');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('CRUD Artikel'),
+        title: Text('Artikel Kesehatan'),
         backgroundColor: Colors.teal,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigasi ke halaman Tambah Artikel
+          // Navigasi ke halaman TambahArtikelPage untuk menambah artikel
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => TambahArtikelPage()),
@@ -20,32 +30,35 @@ class ArtikelPage extends StatelessWidget {
         backgroundColor: Colors.teal,
         child: Icon(Icons.add),
       ),
-      body: ListView.builder(
-        itemCount: 5, // Ganti dengan jumlah artikel dari database
-        itemBuilder: (context, index) {
-          return Card(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListTile(
-              title: Text('Judul Artikel ${index + 1}'),
-              subtitle: Text('Deskripsi singkat artikel ${index + 1}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      // Logika edit artikel
-                    },
-                    icon: Icon(Icons.edit, color: Colors.orange),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      // Logika hapus artikel
-                    },
-                    icon: Icon(Icons.delete, color: Colors.red),
-                  ),
-                ],
-              ),
-            ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: artikelCollection.orderBy('created_at', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Terjadi kesalahan!'));
+          }
+
+          final articles = snapshot.data?.docs ?? [];
+
+          return ListView.builder(
+            itemCount: articles.length,
+            itemBuilder: (context, index) {
+              var article = articles[index];
+              String? gambarUrl = article['gambar_url'];
+              return Card(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  title: Text(article['judul']),
+                  subtitle: Text(article['deskripsi']),
+                  leading: gambarUrl != null && gambarUrl.isNotEmpty
+                      ? Image.network(gambarUrl, width: 50, height: 50, fit: BoxFit.cover)
+                      : null, // Menampilkan gambar thumbnail jika ada
+                ),
+              );
+            },
           );
         },
       ),

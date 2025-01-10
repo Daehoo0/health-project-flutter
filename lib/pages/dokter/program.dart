@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:health_project_flutter/pages/dokter/addprogram.dart';
+import 'addprogram.dart';
 
 class ProgramPage extends StatelessWidget {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,32 +23,49 @@ class ProgramPage extends StatelessWidget {
         backgroundColor: Colors.teal,
         child: Icon(Icons.add),
       ),
-      body: ListView.builder(
-        itemCount: 5, // Jumlah program
-        itemBuilder: (context, index) {
-          return Card(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListTile(
-              title: Text('Program ${index + 1}'),
-              subtitle: Text('Deskripsi singkat program ${index + 1}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      // Logika edit program
-                    },
-                    icon: Icon(Icons.edit, color: Colors.orange),
+      body: StreamBuilder(
+        stream: _firestore.collection('programdokter').snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final programs = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: programs.length,
+            itemBuilder: (context, index) {
+              final program = programs[index];
+              return Card(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  title: Text(program['nama']),
+                  subtitle: Text(program['deskripsi']),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          // Logika edit program
+                        },
+                        icon: Icon(Icons.edit, color: Colors.orange),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          // Logika hapus program
+                          _firestore.collection('programdokter').doc(program.id).delete();
+                        },
+                        icon: Icon(Icons.delete, color: Colors.red),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () {
-                      // Logika hapus program
-                    },
-                    icon: Icon(Icons.delete, color: Colors.red),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         },
       ),

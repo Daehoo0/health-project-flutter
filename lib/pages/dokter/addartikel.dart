@@ -1,8 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class TambahArtikelPage extends StatelessWidget {
   final TextEditingController _judulController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
+  final TextEditingController _gambarController = TextEditingController();  // Controller untuk URL gambar
+
+  // Referensi ke koleksi Firestore "artikel"
+  final CollectionReference artikelCollection =
+  FirebaseFirestore.instance.collection('artikel');
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +22,7 @@ class TambahArtikelPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Input untuk Judul Artikel
             TextField(
               controller: _judulController,
               decoration: InputDecoration(
@@ -25,6 +32,8 @@ class TambahArtikelPage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
+
+            // Input untuk Deskripsi Artikel
             TextField(
               controller: _deskripsiController,
               maxLines: 4,
@@ -35,18 +44,60 @@ class TambahArtikelPage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
+
+            // Input untuk URL Gambar
+            TextField(
+              controller: _gambarController,
+              decoration: InputDecoration(
+                labelText: 'URL Gambar (Opsional)',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.image),
+              ),
+            ),
+            SizedBox(height: 16),
+
+            // Preview gambar jika URL valid
+            if (_gambarController.text.isNotEmpty) ...[
+              Image.network(
+                _gambarController.text,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+              SizedBox(height: 16),
+            ],
+
+            // Tombol untuk menyimpan artikel ke Firebase
             ElevatedButton(
-              onPressed: () {
-                // Logika untuk menyimpan artikel
+              onPressed: () async {
                 String judul = _judulController.text;
                 String deskripsi = _deskripsiController.text;
+                String gambarUrl = _gambarController.text;
 
-                // Simpan data ke database atau backend
+                // Validasi input
                 if (judul.isNotEmpty && deskripsi.isNotEmpty) {
-                  // Logika simpan
-                  Navigator.pop(context); // Kembali ke halaman CRUD Artikel
+                  try {
+                    // Menambahkan artikel ke Firestore
+                    await artikelCollection.add({
+                      'judul': judul,
+                      'deskripsi': deskripsi,
+                      'gambar_url': gambarUrl,  // Menyimpan URL gambar jika ada
+                      'created_at': FieldValue.serverTimestamp(),
+                    });
+
+                    // Tampilkan snackbar sukses dan kembali ke halaman utama
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Artikel berhasil ditambahkan')),
+                    );
+
+                    Navigator.pop(context); // Kembali ke halaman CRUD Artikel
+                  } catch (e) {
+                    // Jika ada error, tampilkan pesan error
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Gagal menyimpan artikel')),
+                    );
+                  }
                 } else {
-                  // Tampilkan pesan error jika input kosong
+                  // Tampilkan pesan jika input kosong
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Harap isi semua field')),
                   );
