@@ -27,18 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // Periksa apakah email dan password sesuai untuk admin
-    if (email == 'admin' && password == 'admin') {
-      // Langsung arahkan ke HomeAdmin jika admin
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomeAdmin(userData: {}), // Anda bisa memberikan data dummy untuk admin
-        ),
-      );
-      return;
-    }
-
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -48,35 +36,39 @@ class _LoginScreenState extends State<LoginScreen> {
       String uid = userCredential.user!.uid;
 
       // Cek apakah pengguna adalah dokter
-      DocumentSnapshot doctorDoc = await _firestore.collection('dokter').doc(uid).get();
+      DocumentSnapshot doctorDoc = await _firestore.collection('users').doc(uid).get();
       if (doctorDoc.exists) {
-        // Jika ditemukan di collection 'doctors', arahkan ke HomeDokter
         Map<String, dynamic> doctorData = doctorDoc.data() as Map<String, dynamic>;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeDokter(userData: doctorData), // Berikan doctorData
-          ),
-        );
-        return;
+
+        // Verifikasi apakah role-nya 'dokter' dan email-nya sesuai
+        if (doctorData['role'] == 'dokter' && doctorData['email'] == email) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeDokter(userData: doctorData), // Berikan doctorData
+            ),
+          );
+          return;
+        }
       }
 
       // Cek apakah pengguna adalah pasien
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
       if (userDoc.exists) {
-        // Jika ditemukan di collection 'users', arahkan ke HomeUser
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeUser(userData: userData), // Berikan userData
-          ),
-        );
-        return;
+        if (userData.isNotEmpty) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeUser(userData: userData ?? {}),
+            ),
+          );
+        } else {
+          _showErrorDialog('User data is incomplete or empty.');
+        }
+      } else {
+        _showErrorDialog('User not found.');
       }
-
-      // Jika akun tidak ditemukan
-      _showErrorDialog('Akun tidak ditemukan!');
     } on FirebaseAuthException catch (e) {
       _showErrorDialog(e.message ?? 'Login gagal! Silakan coba lagi.');
     }

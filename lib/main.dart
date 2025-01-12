@@ -13,7 +13,7 @@ void main() async {
   Gemini.init(apiKey: apiKey);
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    name: "healthproject-83a51",
+    // name: "healthProject",
     options: DefaultFirebaseOptions.currentPlatform, // Gunakan FirebaseOptions yang dihasilkan
   );
   runApp(MyApp());
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: CalorieCounterPage(),
+      home: LoginScreen(),
     );
   }
 }
