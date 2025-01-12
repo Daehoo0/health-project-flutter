@@ -18,7 +18,7 @@ class CalorieCounterPage extends StatelessWidget {
     return null;
   }
   final Gemini client = Gemini.instance;
-  Future<Candidates> findPokemon({
+  Future<String> findPokemon({
     required File image,
   }) async {
     final response = await client.textAndImage(
@@ -27,24 +27,29 @@ class CalorieCounterPage extends StatelessWidget {
           image.readAsBytesSync(),
         ]
     );
-    print(response!.content!.parts![0].text);
-    if (response != null) {
-      return response;
-    }
-    throw Exception("Failed to find pokemon");
+    return response!.content!.parts![0].text!;
   }
-
   @override
   Widget build(BuildContext context) {
-    // findPokemon();
-    return ElevatedButton(
-      onPressed: () async {
-        final image = await _pickImage(ImageSource.gallery);
-        if (image != null) {
-          findPokemon(image: image);
-        }
-      },
-      child: Text('Pick Image'),
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Contoh SnackBar"),
+        ),
+      body: ElevatedButton(
+        onPressed: () async {
+          final image = await _pickImage(ImageSource.gallery);
+          if (image != null) {
+            String hasilai = await findPokemon(image: image);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(hasilai),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        child: Text('Pick Image'),
+      ),
     );
   }
 }
