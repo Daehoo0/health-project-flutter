@@ -9,8 +9,8 @@ import 'package:health_project_flutter/pages/user/hitungkalori.dart';
 import 'firebase_options.dart'; // Pastikan ini diimpor
 
 void main() async {
-  // const apiKey = 'AIzaSyByWqlOF0TP5P_n-LdDJOi14JC9O7ipY7k';
-  // Gemini.init(apiKey: apiKey);
+  const apiKey = 'AIzaSyByWqlOF0TP5P_n-LdDJOi14JC9O7ipY7k';
+  Gemini.init(apiKey: apiKey);
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     name: "healthproject-83a51",
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: ArticleListPage(),
+      home: CalorieCounterPage(),
     );
   }
 }

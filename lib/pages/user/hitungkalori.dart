@@ -22,12 +22,12 @@ class CalorieCounterPage extends StatelessWidget {
     required File image,
   }) async {
     final response = await client.textAndImage(
-        text: "hanya tampilkan nama makanan :  xxx perkiraan kalori : xxx jangan tampilkan yang lain, jangan berikan peringatan kalori berbeda beda, hanya tampilkan sesuai yang saya mau",
+        text: "hanya tampilkan nama_makanan#perkiraan_kalori, jika bukan makanan tampilkan \"Harap Masukkan Gambar Makanan\"",
         images:[
           image.readAsBytesSync(),
         ]
     );
-    print(response);
+    print(response!.content!.parts![0].text);
     if (response != null) {
       return response;
     }
