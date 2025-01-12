@@ -5,7 +5,7 @@ class TambahArtikelPage extends StatelessWidget {
   final TextEditingController _judulController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
   final TextEditingController _gambarController = TextEditingController();  // Controller untuk URL gambar
-
+  final TextEditingController _isiartikelController = TextEditingController();
   // Referensi ke koleksi Firestore "artikel"
   final CollectionReference artikelCollection =
   FirebaseFirestore.instance.collection('artikel');
@@ -36,7 +36,7 @@ class TambahArtikelPage extends StatelessWidget {
             // Input untuk Deskripsi Artikel
             TextField(
               controller: _deskripsiController,
-              maxLines: 4,
+              maxLines: 1,
               decoration: InputDecoration(
                 labelText: 'Deskripsi Artikel',
                 border: OutlineInputBorder(),
@@ -49,13 +49,22 @@ class TambahArtikelPage extends StatelessWidget {
             TextField(
               controller: _gambarController,
               decoration: InputDecoration(
-                labelText: 'URL Gambar (Opsional)',
+                labelText: 'URL Gambar',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.image),
               ),
             ),
             SizedBox(height: 16),
-
+            TextField(
+              controller: _isiartikelController,
+              maxLines: 10,
+              decoration: InputDecoration(
+                labelText: 'Isi Artikel',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.abc),
+              ),
+            ),
+            SizedBox(height: 16),
             // Preview gambar jika URL valid
             if (_gambarController.text.isNotEmpty) ...[
               Image.network(
@@ -72,15 +81,18 @@ class TambahArtikelPage extends StatelessWidget {
                 String judul = _judulController.text;
                 String deskripsi = _deskripsiController.text;
                 String gambarUrl = _gambarController.text;
+                String isiartikel = _isiartikelController.text;
 
                 // Validasi input
-                if (judul.isNotEmpty && deskripsi.isNotEmpty) {
+                if (judul.isNotEmpty && deskripsi.isNotEmpty && gambarUrl.isNotEmpty && isiartikel.isNotEmpty) {
                   try {
                     // Menambahkan artikel ke Firestore
                     await artikelCollection.add({
                       'judul': judul,
                       'deskripsi': deskripsi,
                       'gambar_url': gambarUrl,  // Menyimpan URL gambar jika ada
+                      'isi': isiartikel,
+                      'source':'personal',
                       'created_at': FieldValue.serverTimestamp(),
                     });
 
