@@ -39,7 +39,7 @@ class CalorieCounterPage extends StatelessWidget {
         onPressed: () async {
           final image = await _pickImage(ImageSource.gallery);
           if (image != null) {
-            String hasilai = await findPokemon(image: image);
+            var hasilai = await findPokemon(image: image);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(hasilai),
