@@ -4,6 +4,9 @@ import 'package:health_project_flutter/pages/dokter/chat.dart';
 import 'package:health_project_flutter/pages/dokter/profile.dart';
 import 'package:health_project_flutter/pages/dokter/program.dart';
 import 'package:health_project_flutter/pages/login.dart';
+import 'package:provider/provider.dart';
+
+import '../../AuthProvider.dart';
 
 class HomeDokter extends StatefulWidget {
   final Map<String, dynamic> userData;

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_project_flutter/AuthProvider.dart';
+import 'package:health_project_flutter/main.dart';
 import 'package:health_project_flutter/pages/user/tambahmakanan.dart';
 import 'package:health_project_flutter/pages/user/hitungkalori.dart';
 import 'package:health_project_flutter/pages/user/konsultasi.dart';
@@ -28,6 +31,7 @@ class _HomeUserState extends State<HomeUser> {
 
   @override
   Widget build(BuildContext context) {
+    print(context.read<DataLogin>().uiduser);
     final List<Widget> _pages = [
       AddFoodPage(),
       CalorieCounterPage(),

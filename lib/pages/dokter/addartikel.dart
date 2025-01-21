@@ -74,7 +74,6 @@ class TambahArtikelPage extends StatelessWidget {
               ),
               SizedBox(height: 16),
             ],
-
             // Tombol untuk menyimpan artikel ke Firebase
             ElevatedButton(
               onPressed: () async {
