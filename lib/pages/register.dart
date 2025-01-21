@@ -15,6 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _specializationController = TextEditingController(); // New controller for specialization
 
   String _selectedGender = 'Laki-laki';
   String _selectedRole = 'Pasien';  // Default to Pasien
@@ -30,6 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String confirmPassword = _confirmPasswordController.text.trim();
     String height = _heightController.text.trim();
     String weight = _weightController.text.trim();
+    String specialization = _specializationController.text.trim(); // Specialization value
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || height.isEmpty || weight.isEmpty) {
       _showMessage('Semua field harus diisi!');
@@ -41,14 +43,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    if (_selectedRole == 'Dokter' && specialization.isEmpty) {
+      _showMessage('Specialization harus diisi untuk Dokter!');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
+      // Create user in Firebase Authentication
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
+      // Prepare user data
       Map<String, dynamic> userData = {
         'name': name,
         'email': email,
@@ -60,10 +69,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       };
 
-      // Save to either 'dokter' or 'users' collection based on role
+      // If the role is 'Dokter', add specialization to user data
       if (_selectedRole == 'Dokter') {
+        userData['specialization'] = specialization;
+
+        // Insert into 'dokter' collection
         await _firestore.collection('dokter').doc(userCredential.user?.uid).set(userData);
+
+        // Insert into 'users' collection with role set to 'dokter'
+        Map<String, dynamic> userForUsersTable = {
+          'email': email,
+          'name': name,
+          'createdAt': FieldValue.serverTimestamp(),
+          'role': 'dokter', // Set role to 'dokter'
+          'specialization': specialization, // Include specialization
+        };
+        await _firestore.collection('users').doc(userCredential.user?.uid).set(userForUsersTable);
       } else {
+        // Insert into 'users' collection for non-doctor role
         await _firestore.collection('users').doc(userCredential.user?.uid).set(userData);
       }
 
@@ -115,7 +138,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SizedBox(height: 10),
                   _buildTextField(_weightController, 'Berat Badan (kg)', Icons.monitor_weight, keyboardType: TextInputType.number),
                   SizedBox(height: 20),
-                  _buildRoleDropdown(),  // Role selection added
+                  _buildRoleDropdown(),
+                  // Show specialization field only when "Dokter" is selected
+                  if (_selectedRole == 'Dokter') ...[
+                    SizedBox(height: 10),
+                    _buildTextField(_specializationController, 'Spesialisasi', Icons.medical_services),
+                  ],
                   SizedBox(height: 20),
                   _buildRegisterButton(),
                   SizedBox(height: 10),

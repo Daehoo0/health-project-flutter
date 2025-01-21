@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:health_project_flutter/pages/login.dart';
 import './updateprofile.dart';
 import 'package:intl/intl.dart';
 
@@ -46,9 +47,34 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Fungsi untuk logout
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      // Kembali ke halaman login setelah logout
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginScreen(), // Arahkan ke halaman LoginScreen
+        ),
+      );
+    } catch (e) {
+      print("Error logging out: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Profil'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: _logout,
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: userData.isEmpty
@@ -95,6 +121,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 backgroundColor: Colors.teal,
               ),
               child: Text('Edit Profil'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _logout,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              child: Text('Logout'),
             ),
           ],
         ),

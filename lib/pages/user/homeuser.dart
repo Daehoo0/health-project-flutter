@@ -14,7 +14,7 @@ import 'package:health_project_flutter/pages/user/profile.dart';
 class HomeUser extends StatefulWidget {
   final Map<String, dynamic> userData;
 
-  HomeUser({required this.userData});
+  const HomeUser({Key? key, required this.userData}) : super(key: key);
 
   @override
   _HomeUserState createState() => _HomeUserState();
@@ -23,6 +23,7 @@ class HomeUser extends StatefulWidget {
 class _HomeUserState extends State<HomeUser> {
   int _selectedIndex = 0;
 
+  /// Fungsi untuk memperbarui data pengguna di halaman profil
   void _updateUserData(Map<String, dynamic> updatedData) {
     setState(() {
       widget.userData.addAll(updatedData);
@@ -41,19 +42,20 @@ class _HomeUserState extends State<HomeUser> {
       TopUpPage(),
       ArticleListPage(),
       ProfilePage(
+        // userData: widget.userData,
         updateUserData: _updateUserData,
       ),
     ];
 
     final List<String> _pageTitles = [
-      'Halaman Tambah Makanan',
-      'Halaman Hitung Kalori',
-      'Halaman Konsultasi',
-      'Halaman Cari Dokter',
-      'Halaman Program',
-      'Halaman Top Up Saldo',
-      'Halaman Artikel',
-      'Halaman Profil',
+      'Tambah Makanan',
+      'Hitung Kalori',
+      'Konsultasi',
+      'Cari Dokter',
+      'Program',
+      'Top Up Saldo',
+      'Artikel',
+      'Profil',
     ];
 
     return Scaffold(
@@ -61,7 +63,10 @@ class _HomeUserState extends State<HomeUser> {
         title: Text(_pageTitles[_selectedIndex]),
         backgroundColor: Colors.teal,
       ),
-      body: _pages[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
@@ -75,7 +80,7 @@ class _HomeUserState extends State<HomeUser> {
           BottomNavigationBarItem(icon: Icon(Icons.fastfood), label: 'Tambah'),
           BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Kalori'),
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Konsultasi'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Cari Dokter'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Dokter'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Program'),
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Top Up'),
           BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Artikel'),
