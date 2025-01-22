@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 
 class AddFoodPage extends StatelessWidget {
@@ -130,37 +131,32 @@ class ManualInputFood extends StatefulWidget {
 class _ManualInputFoodState extends State<ManualInputFood> {
   final TextEditingController _calorieController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
+  final ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
   int jumlahkalori = -1;
   String selectedUnit = 'Gram'; // Default dropdown value
   final List<String> foodUnits = ['Tangkai','Sisir (contoh: pisang)','Pack','Sachet','Box','Bungkus','Kaleng','Mangkok','Loyang','Porsi','Buah','Lembar','Potong','Iris','Butir','Batang','Mililiter (ml)','Liter (L)','Sendok Teh (sdt)','Sendok Makan (sdm)','Gelas','Gram','Kilogram'];
-  // void _updateCalorieText() {
-  //   setState(() {
-  //     jumlahkalori = 100;
-  //   });
-  // }
   final Gemini client = Gemini.instance;
-  Future<String> _updateCalorieText() async {
+  Future<int> _updateCalorieText() async {
     final response = await client.text(
         "apakah "+_calorieController.text+" merupakan makanan?jawab dengan iya atau tidak saja"
     );
     if(response!.content!.parts![0].text!.toLowerCase() == "tidak"){
+      isLoading.value = false;
       print("bukan makanan");
-      return "bukan_makanan";
+      return -1;
     }else{
       final response = await client.text(
-          "apakah dalam teks "+_calorieController.text+" sudah terdapat satuan untuk makanan ?jawab dengan iya atau tidak saja"
+          "Berapa perkiraan kalori dari "+_quantityController.text+" "+selectedUnit+" "+_calorieController.text+" jawab perkiraannya saja (dalam bentuk angka), jangan berikan teks lain"
       );
-      if(response!.content!.parts![0].text!.toLowerCase() == "tidak"){
-        print("tidak ada satuan ");
-        return "tidak_ada_satuan";
-      }else {
-        final response = await client.text(
-            "Berapa perkiraan kalori dari "+_calorieController.text+" jawab perkiraannya saja, jangan berikan teks lain"
-        );
-        print(response!.content!.parts![0].text!);
+      if(response!.content!.parts![0].text!.split("-").length > 1){
+        var hasil = response!.content!.parts![0].text!.split("-");
+        isLoading.value = false;
+        return ((int.parse(hasil[0])+int.parse(hasil[1]))/2).round();
+      }else{
+        isLoading.value = false;
+        return int.parse(response!.content!.parts![0].text!);
       }
     }
-    return response!.content!.parts![0].text!;
   }
   @override
   Widget build(BuildContext context) {
@@ -177,76 +173,118 @@ class _ManualInputFoodState extends State<ManualInputFood> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: isLoading,
+            builder: (context, value, child) {
+              return value
+                  ? Column(
                 children: [
-                  // Field "Masukkan Makanan"
-                  Expanded(
-                    flex: 4,
-                    child: TextField(
-                      controller: _calorieController,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        labelText: 'Masukkan Makanan',
-                        border: OutlineInputBorder(),
+                  CircularProgressIndicator(),
+                  SizedBox(height: 10),
+                  Text("Loading"),
+                ],
+              )
+                  : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      // Field "Masukkan Makanan"
+                      Expanded(
+                        flex: 4,
+                        child: TextField(
+                          controller: _calorieController,
+                          keyboardType: TextInputType.text,
+                          decoration: InputDecoration(
+                            labelText: 'Masukkan Makanan',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  // Field "Jumlah"
-                  Expanded(
-                    flex: 2,
-                    child: TextField(
-                      controller: _quantityController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Jumlah',
-                        border: OutlineInputBorder(),
+                      SizedBox(width: 10),
+                      // Field "Jumlah"
+                      Expanded(
+                        flex: 2,
+                        child: TextField(
+                          controller: _quantityController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Jumlah',
+                            border: OutlineInputBorder(),
+                          ),
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                        ),
                       ),
-                    ),
+                      SizedBox(width: 10),
+                      // Dropdown "Satuan"
+                      Expanded(
+                        flex: 3,
+                        child: DropdownButtonFormField<String>(
+                          value: selectedUnit,
+                          items: foodUnits.map((String unit) {
+                            return DropdownMenuItem<String>(
+                              value: unit,
+                              child: Text(unit),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedUnit = newValue!;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Satuan',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 10),
-                  // Dropdown "Satuan"
-                  Expanded(
-                    flex: 3,
-                    child: DropdownButtonFormField<String>(
-                      value: selectedUnit,
-                      items: foodUnits.map((String unit) {
-                        return DropdownMenuItem<String>(
-                          value: unit,
-                          child: Text(unit),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedUnit = newValue!;
-                        });
+                  SizedBox(height: 20),
+                  Text(
+                    "Kalori : " + (jumlahkalori != -1 ? jumlahkalori.toString() : "Belum Diketahui"),
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(height: 20),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    child: ElevatedButton(
+                      onPressed: ()async {
+                        String calorie = _calorieController.text.trim();
+                        String quantity = _quantityController.text.trim();
+                        if (calorie.isEmpty || quantity.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Semua input harus terisi!'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } else {
+                          isLoading.value = true;
+                          var hasil = await _updateCalorieText();
+                          if(hasil == -1){
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Harap Masukkan Nama Makanan"),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }else{
+                            setState(() {
+                              jumlahkalori = hasil;
+                            });
+                          }
+                        }
                       },
-                      decoration: InputDecoration(
-                        labelText: 'Satuan',
-                        border: OutlineInputBorder(),
-                      ),
+                      child: Text('Dapatkan Perkiraan Kalori'),
                     ),
                   ),
                 ],
-              ),
-              SizedBox(height: 20),
-              Text(
-                "Kalori : " + (jumlahkalori != -1 ? jumlahkalori.toString() : "Belum Diketahui"),
-                style: TextStyle(fontSize: 18),
-              ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: ElevatedButton(
-                  onPressed: _updateCalorieText,
-                  child: Text('Dapatkan Perkiraan Kalori'),
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
