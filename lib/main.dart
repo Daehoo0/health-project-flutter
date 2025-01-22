@@ -10,6 +10,7 @@ import 'package:health_project_flutter/pages/login.dart';
 import 'package:health_project_flutter/pages/user/artikel.dart';
 import 'package:health_project_flutter/pages/user/hitungkalori.dart';
 import 'package:health_project_flutter/pages/user/program.dart';
+import 'package:health_project_flutter/pages/user/tambahmakanan.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart'; // Pastikan ini diimpor
 
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: LoginScreen(),
+        home: ManualInputFood(),
       ),
     );
   }

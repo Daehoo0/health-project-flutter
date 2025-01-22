@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:health_project_flutter/currency_format.dart';
 
 class ProgramListPage extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -65,6 +67,12 @@ class ProgramDetailPage extends StatelessWidget {
       DocumentSnapshot snapshot = await _firestore.collection('programdokter').doc(idprogram).get();
       List<Map<String, dynamic>> data = [];
       data.add(snapshot.data() as Map<String, dynamic>);
+      DocumentSnapshot snapshotdokter = await _firestore.collection('users').doc(data[0]["owner"]).get();
+      var datadokter = snapshotdokter.data() as Map<String,dynamic>;
+      // data["nama_dokter"] = snapshotdokter
+      data[0]["dokter"] =datadokter["name"];
+      data[0]["spesialis"] =datadokter["specialization"];
+      // snapshot = await _firestore.collection('users').doc(data).get();
       return data;
     } catch (e) {
       print("Error: $e");
@@ -114,7 +122,7 @@ class ProgramDetailPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'Dr. William Davis, MD',
+                            snapshot.data![0]["dokter"],
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 22,
@@ -122,7 +130,7 @@ class ProgramDetailPage extends StatelessWidget {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Cardiologist, New York Times best-selling author of Wheat Belly',
+                            snapshot.data![0]["spesialis"],
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -134,7 +142,7 @@ class ProgramDetailPage extends StatelessWidget {
                               Icon(Icons.calendar_today, size: 20, color: Colors.grey),
                               SizedBox(width: 8),
                               Text(
-                                'Duration: '+snapshot.data![0]["durasi"],
+                                'Duration: '+snapshot.data![0]["durasi"]+" Hari",
                                 style: TextStyle(fontSize: 14),
                               ),
                             ],
@@ -145,7 +153,7 @@ class ProgramDetailPage extends StatelessWidget {
                               Icon(Icons.attach_money, size: 20, color: Colors.grey),
                               SizedBox(width: 8),
                               Text(
-                                'Price: Rp 10000',
+                                CurrencyFormat.convertToIdr(snapshot.data![0]["harga"], 2),
                                 style: TextStyle(fontSize: 14),
                               ),
                             ],
