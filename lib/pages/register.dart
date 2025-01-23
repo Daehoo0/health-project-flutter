@@ -66,15 +66,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'weight': double.parse(weight),
         'saldo': 0,
         'role': _selectedRole,
+        "listmakanan": [],
+        "listjadwalolahraga": [],
+        "listprogram": [],
         'createdAt': FieldValue.serverTimestamp(),
       };
 
       // If the role is 'Dokter', add specialization to user data
       if (_selectedRole == 'Dokter') {
         userData['specialization'] = specialization;
-
-        // Insert into 'dokter' collection
-        await _firestore.collection('dokter').doc(userCredential.user?.uid).set(userData);
 
         // Insert into 'users' collection with role set to 'dokter'
         Map<String, dynamic> userForUsersTable = {
@@ -83,6 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'createdAt': FieldValue.serverTimestamp(),
           'role': 'dokter', // Set role to 'dokter'
           'specialization': specialization, // Include specialization
+          'is_active': 0, // default dokter tidak aktif
         };
         await _firestore.collection('users').doc(userCredential.user?.uid).set(userForUsersTable);
       } else {
@@ -228,7 +229,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         shadowColor: Colors.teal.withOpacity(0.3),
         elevation: 5,
       ),
-      child: Text('Daftar', style: TextStyle(fontSize: 18)),
+      child: Center(
+        child: Text(
+          'Daftar',
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:health_project_flutter/pages/user/program.dart';
 import 'package:health_project_flutter/pages/user/topup.dart';
 import 'package:health_project_flutter/pages/user/artikel.dart';
 import 'package:health_project_flutter/pages/user/profile.dart';
+import 'package:health_project_flutter/pages/user/goals.dart';
 
 class HomeUser extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -36,6 +37,7 @@ class _HomeUserState extends State<HomeUser> {
     final List<Widget> _pages = [
       AddFoodPage(),
       CalorieCounterPage(),
+      Goals(userData: widget.userData), // Melewatkan userData ke Goals
       ChatConsultationPage(),
       SearchDoctorPage(),
       ProgramListPage(),
@@ -50,6 +52,7 @@ class _HomeUserState extends State<HomeUser> {
     final List<String> _pageTitles = [
       'Tambah Makanan',
       'Hitung Kalori',
+      'Goals',
       'Konsultasi',
       'Cari Dokter',
       'Program',
@@ -79,6 +82,7 @@ class _HomeUserState extends State<HomeUser> {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.fastfood), label: 'Tambah'),
           BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Kalori'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Goals'),
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Konsultasi'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Dokter'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Program'),

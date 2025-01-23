@@ -24,7 +24,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadUserData();
   }
 
-  // Fungsi untuk memuat ulang data pengguna dari Firestore
   Future<void> _loadUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -47,15 +46,13 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Fungsi untuk logout
   Future<void> _logout() async {
     try {
       await FirebaseAuth.instance.signOut();
-      // Kembali ke halaman login setelah logout
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => LoginScreen(), // Arahkan ke halaman LoginScreen
+          builder: (context) => LoginScreen(),
         ),
       );
     } catch (e) {
@@ -67,7 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profil'),
+        backgroundColor: Colors.teal,
         actions: [
           IconButton(
             icon: Icon(Icons.exit_to_app),
@@ -78,61 +75,144 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: userData.isEmpty
-            ? Center(child: CircularProgressIndicator()) // Loading indicator jika data belum ada
-            : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Profil Anda',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text('Nama: ${userData['name'] ?? 'N/A'}'),
-            SizedBox(height: 10),
-            Text('Email: ${userData['email'] ?? 'N/A'}'),
-            SizedBox(height: 10),
-            Text('Saldo: Rp$formattedBalance'),
-            SizedBox(height: 10),
-            Text('Jenis Kelamin: ${userData['gender'] ?? 'N/A'}'),
-            SizedBox(height: 10),
-            Text('Tinggi Badan: ${userData['height'] ?? 0} (cm)'),
-            SizedBox(height: 10),
-            Text('Berat Badan: ${userData['weight'] ?? 0} (kg)'),
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UpdateProfilePage(
-                      userData: userData,
-                      updateUserData: (updatedData) {
-                        setState(() {
-                          userData = updatedData;
-                        });
-                        widget.updateUserData(updatedData);
-                      },
+            ? Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 3,
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage('assets/profile.png'), // Ganti dengan gambar profil jika tersedia
+                        backgroundColor: Colors.teal[100],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Center(
+                      child: Text(
+                        userData['name'] ?? 'N/A',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Divider(),
+                    ListTile(
+                      leading: Icon(Icons.email, color: Colors.teal),
+                      title: Text('Email'),
+                      subtitle: Text(userData['email'] ?? 'N/A'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.account_balance_wallet, color: Colors.teal),
+                      title: Text('Saldo'),
+                      subtitle: Text('Rp$formattedBalance'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.male, color: Colors.teal),
+                      title: Text('Jenis Kelamin'),
+                      subtitle: Text(userData['gender'] ?? 'N/A'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.height, color: Colors.teal),
+                      title: Text('Tinggi Badan'),
+                      subtitle: Text('${userData['height'] ?? 0} cm'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.fitness_center, color: Colors.teal),
+                      title: Text('Berat Badan'),
+                      subtitle: Text('${userData['weight'] ?? 0} kg'),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdateProfilePage(
+                            userData: userData,
+                            updateUserData: (updatedData) {
+                              setState(() {
+                                userData = updatedData;
+                              });
+                              widget.updateUserData(updatedData);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      shadowColor: Colors.teal.withOpacity(0.3),
+                      elevation: 5,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, color: Colors.white),
+                        SizedBox(width: 10),
+                        Text(
+                          'Edit Profil',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                  ElevatedButton(
+                    onPressed: _logout,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      shadowColor: Colors.red.withOpacity(0.3),
+                      elevation: 5,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.white),
+                        SizedBox(width: 10),
+                        Text(
+                          'Logout',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              child: Text('Edit Profil'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _logout,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-              child: Text('Logout'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+      backgroundColor: Colors.grey[200],
     );
   }
 }

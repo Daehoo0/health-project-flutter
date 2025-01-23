@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: ManualInputFood(),
+        home: LoginScreen(),
       ),
     );
   }

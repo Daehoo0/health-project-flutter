@@ -14,11 +14,14 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
   final String senderId = FirebaseAuth.instance.currentUser?.uid ?? '';
   String? selectedDoctorId;
   bool isLoading = false;
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -74,59 +77,104 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
   }
 
   Widget _buildDoctorList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .where('role', isEqualTo: 'dokter')
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(child: Text('Tidak ada dokter yang tersedia'));
-        }
-
-        return ListView.builder(
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            final doctorData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
-            final doctorId = snapshot.data!.docs[index].id;
-
-            return Card(
-              margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              child: ListTile(
-                leading: CircleAvatar(
-                  child: Icon(Icons.person),
-                ),
-                title: Text('dr. ' + doctorData['name'] ?? 'Nama Dokter'),
-                onTap: () {
-                  if (senderId.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Anda harus login terlebih dahulu')),
-                    );
-                    return;
-                  }
-                  setState(() {
-                    selectedDoctorId = doctorId;
-                  });
-                },
+    return Column(
+      children: [
+        // Search panel
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: TextField(
+            controller: _searchController,
+            onChanged: (query) {
+              setState(() {
+                _searchQuery = query.toLowerCase();
+              });
+            },
+            decoration: InputDecoration(
+              hintText: 'Cari nama dokter...',
+              prefixIcon: Icon(Icons.search, color: Colors.blue),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide(color: Colors.blue),
               ),
-            );
-          },
-        );
-      },
+              filled: true,
+              fillColor: Colors.white,
+            ),
+          ),
+        ),
+        // Doctor list
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .where('role', isEqualTo: 'dokter')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(child: Text('Tidak ada dokter yang tersedia'));
+              }
+
+              // Filter doctors by search query
+              final filteredDoctors = snapshot.data!.docs.where((doc) {
+                final doctorData = doc.data() as Map<String, dynamic>;
+                final doctorName = doctorData['name']?.toLowerCase() ?? '';
+                return doctorName.contains(_searchQuery);
+              }).toList();
+
+              if (filteredDoctors.isEmpty) {
+                return Center(child: Text('Dokter tidak ditemukan'));
+              }
+
+              return ListView.builder(
+                itemCount: filteredDoctors.length,
+                itemBuilder: (context, index) {
+                  final doctorData = filteredDoctors[index].data() as Map<String, dynamic>;
+                  final doctorId = filteredDoctors[index].id;
+
+                  return Card(
+                    elevation: 3,
+                    margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        radius: 24,
+                        child: Icon(Icons.person, size: 30),
+                      ),
+                      title: Text('dr. ' + doctorData['name'] ?? 'Nama Dokter'),
+                      onTap: () {
+                        if (senderId.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Anda harus login terlebih dahulu')),
+                          );
+                          return;
+                        }
+                        setState(() {
+                          selectedDoctorId = doctorId;
+                        });
+                      },
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildChatPanel() {
     return Column(
       children: [
-        // Header bagian atas yang menampilkan informasi dokter
+        // Doctor info header
         Container(
-          padding: EdgeInsets.all(8.0),
-          color: Colors.grey[200],
+          padding: EdgeInsets.all(10.0),
+          color: Colors.blue[100],
           child: StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('users')
@@ -139,12 +187,13 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
               return Row(
                 children: [
                   CircleAvatar(
-                    child: Icon(Icons.person),
+                    radius: 30,
+                    child: Icon(Icons.person, size: 35),
                   ),
                   SizedBox(width: 8),
                   Text(
                     'dr. ' + doctorData['name'] ?? 'Nama Dokter',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                 ],
               );
@@ -152,13 +201,13 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
           ),
         ),
 
-        // Daftar percakapan
+        // Chat messages
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('chat')
-                .where('sender', whereIn: [senderId, selectedDoctorId]) // Menampilkan chat dari sender atau receiver yang sesuai
-                .where('receiver', whereIn: [senderId, selectedDoctorId]) // Termasuk chat dari dokter atau user
+                .where('sender', whereIn: [senderId, selectedDoctorId])
+                .where('receiver', whereIn: [senderId, selectedDoctorId])
                 .orderBy('timestamp', descending: true)
                 .snapshots(),
             builder: (context, snapshot) {
@@ -181,7 +230,7 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
                   final formattedTime = _formatTimestamp(timestamp);
 
                   return Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(10.0),
                     child: Align(
                       alignment: (chatData['sender'] == senderId)
                           ? Alignment.centerRight
@@ -192,14 +241,17 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
                             : CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                            padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
                             decoration: BoxDecoration(
                               color: (chatData['sender'] == senderId) ? Colors.blue : Colors.grey[300],
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(15),
                             ),
                             child: Text(
                               message,
-                              style: TextStyle(color: (chatData['sender'] == senderId) ? Colors.white : Colors.black),
+                              style: TextStyle(
+                                color: (chatData['sender'] == senderId) ? Colors.white : Colors.black,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                           SizedBox(height: 4),
@@ -217,9 +269,9 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
           ),
         ),
 
-        // Form input pesan
+        // Message input
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(10.0),
           child: Row(
             children: [
               Expanded(
@@ -228,12 +280,13 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
                   decoration: InputDecoration(
                     hintText: 'Ketik pesan...',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(15),
                     ),
+                    contentPadding: EdgeInsets.symmetric(vertical: 15),
                   ),
                 ),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: 10),
               IconButton(
                 icon: isLoading
                     ? CircularProgressIndicator()
