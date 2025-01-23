@@ -1,6 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:health_project_flutter/AuthProvider.dart';
 
 class AddFoodPage extends StatelessWidget {
   @override
@@ -132,6 +136,7 @@ class _ManualInputFoodState extends State<ManualInputFood> {
   final TextEditingController _calorieController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   final ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   int jumlahkalori = -1;
   String selectedUnit = 'Gram'; // Default dropdown value
   final List<String> foodUnits = ['Tangkai','Sisir (contoh: pisang)','Pack','Sachet','Box','Bungkus','Kaleng','Mangkok','Loyang','Porsi','Buah','Lembar','Potong','Iris','Butir','Batang','Mililiter (ml)','Liter (L)','Sendok Teh (sdt)','Sendok Makan (sdm)','Gelas','Gram','Kilogram'];
@@ -294,7 +299,23 @@ class _ManualInputFoodState extends State<ManualInputFood> {
           width: MediaQuery.of(context).size.width * 0.9,
           child: ElevatedButton(
             onPressed: jumlahkalori == -1 ? null : () {
-              // Tambahkan logika untuk "Tambahkan Makanan" di sini
+              _firestore.collection('makananuser').add({
+                'nama': _quantityController.text+" "+selectedUnit+" "+_calorieController.text,
+                'kalori': jumlahkalori,
+                'owner': context.read<DataLogin>().uiduser,
+                'created_at': FieldValue.serverTimestamp(),
+              }).then((value) {
+                // Kembali ke halaman sebelumnya setelah berhasil menyimpan
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Berhasil Menambahkan Makanan')),
+                );
+              }).catchError((error) {
+                // Menampilkan pesan error jika gagal menyimpan
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Gagal menyimpan data: $error')),
+                );
+              });
             },
             child: Text('Tambahkan Makanan'),
           ),
