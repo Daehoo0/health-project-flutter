@@ -6,8 +6,6 @@ class ArticlePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Artikel'),
-        backgroundColor: Colors.teal,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

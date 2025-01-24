@@ -2,120 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:health_project_flutter/pages/login.dart';
 import 'package:health_project_flutter/pages/admin/dokter.dart';
 import 'package:health_project_flutter/pages/admin/artikel.dart';
-import 'package:health_project_flutter/pages/admin/user.dart';
 import 'package:health_project_flutter/pages/admin/jadwal.dart';
 
 class HomeAdmin extends StatefulWidget {
   final Map<String, dynamic> userData;
 
-  HomeAdmin({required this.userData});
+  const HomeAdmin({Key? key, required this.userData}) : super(key: key);
 
   @override
   _HomeAdminState createState() => _HomeAdminState();
 }
 
 class _HomeAdminState extends State<HomeAdmin> {
-  int _selectedIndex = 0; // Untuk mengatur tab yang dipilih di sidebar
-
-  // Daftar menu sidebar
-  final List<String> menuTitles = [
-    'Dokter',
-    'Jadwal',
-    'Artikel',
-    'User',
-    'Logout',
-  ];
-
-  // Daftar widget untuk setiap halaman
-  final List<Widget> menuPages = [
-    DoctorPage(),
-    SchedulePage(),
-    ArticlePage(),
-    DeleteUserPage(),
-  ];
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      DoctorPage(),
+      SchedulePage(),
+      ArticlePage(),
+    ];
+
+    final List<String> _pageTitles = [
+      'Dokter',
+      'Jadwal',
+      'Artikel',
+    ];
+
     return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar
-          Container(
-            width: 250,
-            color: Colors.teal,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header di sidebar
-                Container(
-                  height: 100,
-                  color: Colors.teal.shade700,
-                  child: Center(
-                    child: Text(
-                      'Admin Panel',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                // Menu sidebar
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: menuTitles.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: Icon(
-                          Icons.circle,
-                          color: _selectedIndex == index
-                              ? Colors.white
-                              : Colors.teal.shade100,
-                        ),
-                        title: Text(
-                          menuTitles[index],
-                          style: TextStyle(
-                            color: _selectedIndex == index
-                                ? Colors.white
-                                : Colors.teal.shade100,
-                          ),
-                        ),
-                        selected: _selectedIndex == index,
-                        selectedTileColor: Colors.teal.shade600,
-                        onTap: () {
-                          if (menuTitles[index] == 'Logout') {
-                            // Logika logout
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => LoginScreen(), // Halaman Login
-                              ),
-                                  (route) => false,
-                            );
-                          } else {
-                            // Perbarui halaman yang ditampilkan
-                            setState(() {
-                              _selectedIndex = index;
-                            });
-                          }
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Konten utama
-          Expanded(
-            child: Container(
-              color: Colors.grey.shade100,
-              child: _selectedIndex < menuPages.length
-                  ? menuPages[_selectedIndex]
-                  : Container(),// Tampilkan halaman sesuai tab
-            ),
-          ),
+      appBar: AppBar(
+        title: Text(_pageTitles[_selectedIndex]),
+        backgroundColor: Colors.teal,
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          if (index == 3) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LoginScreen(),
+              ),
+                  (route) => false,
+            );
+          } else {
+            setState(() {
+              _selectedIndex = index;
+            });
+          }
+        },
+        selectedItemColor: Colors.teal,
+        unselectedItemColor: Colors.grey,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.local_hospital), label: 'Dokter'),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Jadwal'),
+          BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Artikel'),
+          BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Logout'),
         ],
       ),
     );

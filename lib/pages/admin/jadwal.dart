@@ -6,8 +6,6 @@ class SchedulePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Jadwal'),
-        backgroundColor: Colors.teal,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

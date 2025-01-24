@@ -1,28 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:health_project_flutter/pages/admin/permintaaddokter.dart';
 
-class DoctorPage extends StatefulWidget {
+class PermintaanPage extends StatefulWidget {
   @override
-  _DoctorPageState createState() => _DoctorPageState();
+  _PermintaanPageState createState() => _PermintaanPageState();
 }
 
-class _DoctorPageState extends State<DoctorPage> {
+class _PermintaanPageState extends State<PermintaanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => PermintaanPage()),
-          );
-        },
+        title: Text('Permintaan Dokter'),
         backgroundColor: Colors.teal,
-        child: Icon(Icons.person),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -30,7 +20,7 @@ class _DoctorPageState extends State<DoctorPage> {
           stream: FirebaseFirestore.instance
               .collection('users')
               .where('role', isEqualTo: 'dokter')
-              .where('is_active', isEqualTo: 1)
+              .where('is_active', isEqualTo: 0)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -38,10 +28,10 @@ class _DoctorPageState extends State<DoctorPage> {
             }
 
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Center(child: Text('Tidak ada data dokter.'));
+              return Center(child: Text('Tidak ada permintaan dokter.'));
             }
 
-            final doctors = snapshot.data!.docs;
+            final requests = snapshot.data!.docs;
 
             return GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -50,10 +40,10 @@ class _DoctorPageState extends State<DoctorPage> {
                 mainAxisSpacing: 8,
                 childAspectRatio: 3 / 4,
               ),
-              itemCount: doctors.length,
+              itemCount: requests.length,
               itemBuilder: (context, index) {
-                final doctor = doctors[index];
-                final Map<String, dynamic> data = doctor.data() as Map<String, dynamic>;
+                final request = requests[index];
+                final data = request.data() as Map<String, dynamic>;
                 final profile = data.containsKey('profile') ? data['profile'] : '';
                 final name = data.containsKey('name') ? data['name'] : 'Nama tidak tersedia';
                 final specialization = data.containsKey('specialization') ? data['specialization'] : 'Spesialisasi tidak tersedia';
@@ -100,7 +90,7 @@ class _DoctorPageState extends State<DoctorPage> {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: Text('Konfirmasi'),
-                              content: Text('Apakah Anda yakin ingin membanned dokter ini?'),
+                              content: Text('Apakah Anda yakin ingin mengaktifkan dokter ini?'),
                               actions: [
                                 TextButton(
                                   onPressed: () {
@@ -112,10 +102,9 @@ class _DoctorPageState extends State<DoctorPage> {
                                   onPressed: () {
                                     FirebaseFirestore.instance
                                         .collection('users')
-                                        .doc(doctor.id)
-                                        .update({'is_active': 0}).then((_) {
+                                        .doc(request.id)
+                                        .update({'is_active': 1}).then((_) {
                                       Navigator.pop(context);
-                                      setState(() {});
                                     });
                                   },
                                   child: Text('Ya'),
@@ -125,12 +114,12 @@ class _DoctorPageState extends State<DoctorPage> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
+                          backgroundColor: Colors.green,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Text('Banned'),
+                        child: Text('Aktifkan'),
                       ),
                     ],
                   ),
