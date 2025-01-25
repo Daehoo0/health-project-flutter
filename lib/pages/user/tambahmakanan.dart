@@ -300,7 +300,8 @@ class _ManualInputFoodState extends State<ManualInputFood> {
           child: ElevatedButton(
             onPressed: jumlahkalori == -1 ? null : () {
               _firestore.collection('makananuser').add({
-                'nama': _quantityController.text+" "+selectedUnit+" "+_calorieController.text,
+                'nama': _calorieController.text,
+                'satuan': _quantityController.text+" "+selectedUnit,
                 'kalori': jumlahkalori,
                 'owner': context.read<DataLogin>().uiduser,
                 'created_at': FieldValue.serverTimestamp(),

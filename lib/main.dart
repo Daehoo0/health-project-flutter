@@ -8,6 +8,7 @@ import 'package:health_project_flutter/pages/dokter/addartikel.dart';
 import 'package:health_project_flutter/pages/dokter/addprogram.dart';
 import 'package:health_project_flutter/pages/login.dart';
 import 'package:health_project_flutter/pages/user/artikel.dart';
+import 'package:health_project_flutter/pages/user/historyeat.dart';
 import 'package:health_project_flutter/pages/user/hitungkalori.dart';
 import 'package:health_project_flutter/pages/user/program.dart';
 import 'package:health_project_flutter/pages/user/tambahmakanan.dart';
@@ -38,7 +39,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: LoginScreen(),
+        home: Riwayatmakanuser(),
       ),
     );
   }
