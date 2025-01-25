@@ -43,9 +43,9 @@ class _DoctorPageState extends State<DoctorPage> {
 
             return GridView.builder(
               padding: EdgeInsets.all(8),
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 400,  // Menyesuaikan lebar card dengan ukuran layar
-                childAspectRatio: 3 / 4,  // Rasio tinggi dan lebar card
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(), // Menyesuaikan jumlah kolom berdasarkan lebar layar
+                childAspectRatio: 3 / 4,  // Menyesuaikan tinggi card dengan rasio lebar dan tinggi
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -131,6 +131,7 @@ class _DoctorPageState extends State<DoctorPage> {
                         ),
                         child: Text('Banned'),
                       ),
+                      SizedBox(height: 5),
                     ],
                   ),
                 );

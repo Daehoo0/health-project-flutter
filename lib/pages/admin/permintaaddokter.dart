@@ -87,7 +87,7 @@ class _PermintaanPageState extends State<PermintaanPage> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      Spacer(),
+                      SizedBox(height: 15),
                       ElevatedButton(
                         onPressed: () {
                           showDialog(
@@ -125,6 +125,7 @@ class _PermintaanPageState extends State<PermintaanPage> {
                         ),
                         child: Text('Aktifkan'),
                       ),
+                      SizedBox(height: 5),
                     ],
                   ),
                 );
