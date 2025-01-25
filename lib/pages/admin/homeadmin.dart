@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:health_project_flutter/pages/login.dart';
 import 'package:health_project_flutter/pages/admin/dokter.dart';
 import 'package:health_project_flutter/pages/admin/artikel.dart';
-import 'package:health_project_flutter/pages/admin/jadwal.dart';
+import 'package:health_project_flutter/pages/admin/pasien.dart';
 
 class HomeAdmin extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -20,13 +20,13 @@ class _HomeAdminState extends State<HomeAdmin> {
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
       DoctorPage(),
-      SchedulePage(),
+      UserPage(),
       ArticlePage(),
     ];
 
     final List<String> _pageTitles = [
       'Dokter',
-      'Jadwal',
+      'Pasien',
       'Artikel',
     ];
 
@@ -60,7 +60,7 @@ class _HomeAdminState extends State<HomeAdmin> {
         unselectedItemColor: Colors.grey,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.local_hospital), label: 'Dokter'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Jadwal'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_2), label: 'Pasien'),
           BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Artikel'),
           BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Logout'),
         ],

@@ -2,11 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddArtikelPage extends StatelessWidget {
-  final TextEditingController _judulController = TextEditingController();
-  final TextEditingController _deskripsiController = TextEditingController();
-  final TextEditingController _gambarController = TextEditingController();  // Controller untuk URL gambar
-  final TextEditingController _isiartikelController = TextEditingController();
-  // Referensi ke koleksi Firestore "artikel"
+  final TextEditingController _judulController;
+  final TextEditingController _thumbnailController;
+  final TextEditingController _urlLinkController;
+  final TextEditingController _deskripsiController;
+  final String? documentId;
+
+  AddArtikelPage({
+    Key? key,
+    String? judul,
+    String? thumbnailUrl,
+    String? urlLink,
+    String? deskripsi,
+    this.documentId,
+  })  : _judulController = TextEditingController(text: judul),
+        _thumbnailController = TextEditingController(text: thumbnailUrl),
+        _urlLinkController = TextEditingController(text: urlLink),
+        _deskripsiController = TextEditingController(text: deskripsi),
+        super(key: key);
+
   final CollectionReference artikelCollection =
   FirebaseFirestore.instance.collection('artikel');
 
@@ -14,7 +28,7 @@ class AddArtikelPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tambah Artikel'),
+        title: Text(documentId == null ? 'Tambah Artikel' : 'Edit Artikel'),
         backgroundColor: Colors.teal,
       ),
       body: Padding(
@@ -22,7 +36,6 @@ class AddArtikelPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Input untuk Judul Artikel
             TextField(
               controller: _judulController,
               decoration: InputDecoration(
@@ -32,11 +45,26 @@ class AddArtikelPage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
-
-            // Input untuk Deskripsi Artikel
+            TextField(
+              controller: _thumbnailController,
+              decoration: InputDecoration(
+                labelText: 'URL Thumbnail Gambar',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.image),
+              ),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _urlLinkController,
+              decoration: InputDecoration(
+                labelText: 'URL Link Artikel',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.link),
+              ),
+            ),
+            SizedBox(height: 16),
             TextField(
               controller: _deskripsiController,
-              maxLines: 1,
               decoration: InputDecoration(
                 labelText: 'Deskripsi Artikel',
                 border: OutlineInputBorder(),
@@ -44,72 +72,44 @@ class AddArtikelPage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
-
-            // Input untuk URL Gambar
-            TextField(
-              controller: _gambarController,
-              decoration: InputDecoration(
-                labelText: 'URL Gambar',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.image),
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _isiartikelController,
-              maxLines: 10,
-              decoration: InputDecoration(
-                labelText: 'Isi Artikel',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.abc),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Preview gambar jika URL valid
-            if (_gambarController.text.isNotEmpty) ...[
-              Image.network(
-                _gambarController.text,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-              SizedBox(height: 16),
-            ],
-
-            // Tombol untuk menyimpan artikel ke Firebase
             ElevatedButton(
               onPressed: () async {
                 String judul = _judulController.text;
+                String thumbnailUrl = _thumbnailController.text;
+                String urlLink = _urlLinkController.text;
                 String deskripsi = _deskripsiController.text;
-                String gambarUrl = _gambarController.text;
-                String isiartikel = _isiartikelController.text;
 
-                // Validasi input
-                if (judul.isNotEmpty && deskripsi.isNotEmpty && gambarUrl.isNotEmpty && isiartikel.isNotEmpty) {
+                if (judul.isNotEmpty && thumbnailUrl.isNotEmpty && urlLink.isNotEmpty && deskripsi.isNotEmpty) {
                   try {
-                    // Menambahkan artikel ke Firestore
-                    await artikelCollection.add({
-                      'judul': judul,
-                      'deskripsi': deskripsi,
-                      'gambar_url': gambarUrl,  // Menyimpan URL gambar jika ada
-                      'isi': isiartikel,
-                      'source':'personal',
-                      'created_at': FieldValue.serverTimestamp(),
-                    });
+                    if (documentId == null) {
+                      await artikelCollection.add({
+                        'judul': judul,
+                        'thumbnail_url': thumbnailUrl,
+                        'url_link': urlLink,
+                        'deskripsi': deskripsi,
+                        'source': 'web',
+                        'created_at': FieldValue.serverTimestamp(),
+                      });
+                    } else {
+                      await artikelCollection.doc(documentId).update({
+                        'judul': judul,
+                        'thumbnail_url': thumbnailUrl,
+                        'url_link': urlLink,
+                        'deskripsi': deskripsi,
+                      });
+                    }
 
-                    // Tampilkan snackbar sukses dan kembali ke halaman utama
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Artikel berhasil ditambahkan')),
+                      SnackBar(content: Text(documentId == null ? 'Artikel berhasil ditambahkan' : 'Artikel berhasil diperbarui')),
                     );
 
-                    Navigator.pop(context); // Kembali ke halaman CRUD Artikel
+                    Navigator.pop(context);
                   } catch (e) {
-                    // Jika ada error, tampilkan pesan error
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Gagal menyimpan artikel')),
                     );
                   }
                 } else {
-                  // Tampilkan pesan jika input kosong
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Harap isi semua field')),
                   );
@@ -120,7 +120,7 @@ class AddArtikelPage extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
-                'Simpan Artikel',
+                documentId == null ? 'Simpan Artikel' : 'Perbarui Artikel',
                 style: TextStyle(fontSize: 18),
               ),
             ),

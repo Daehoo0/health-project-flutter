@@ -1,34 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:health_project_flutter/pages/admin/permintaaddokter.dart';
 
-class DoctorPage extends StatefulWidget {
+class UserPage extends StatefulWidget {
   @override
-  _DoctorPageState createState() => _DoctorPageState();
+  _UserPageState createState() => _UserPageState();
 }
 
-class _DoctorPageState extends State<DoctorPage> {
+class _UserPageState extends State<UserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => PermintaanPage()),
-          );
-        },
-        backgroundColor: Colors.teal,
-        child: Icon(Icons.person),
+      appBar: AppBar(
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('users')
-              .where('role', isEqualTo: 'dokter')
-              .where('is_active', isEqualTo: 1)
+              .where('role', isEqualTo: 'Pasien')  // Filter hanya pasien
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -36,26 +25,30 @@ class _DoctorPageState extends State<DoctorPage> {
             }
 
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Center(child: Text('Tidak ada data dokter.'));
+              return Center(child: Text('Tidak ada data pasien.'));
             }
 
-            final doctors = snapshot.data!.docs;
+            final users = snapshot.data!.docs;
 
             return GridView.builder(
               padding: EdgeInsets.all(8),
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 400,  // Menyesuaikan lebar card dengan ukuran layar
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(), // Menyesuaikan jumlah kolom berdasarkan lebar layar
                 childAspectRatio: 3 / 4,  // Rasio tinggi dan lebar card
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
-              itemCount: doctors.length,
+              itemCount: users.length,
               itemBuilder: (context, index) {
-                final doctor = doctors[index];
-                final Map<String, dynamic> data = doctor.data() as Map<String, dynamic>;
+                final user = users[index];
+                final Map<String, dynamic> data = user.data() as Map<String, dynamic>;
                 final profile = data.containsKey('profile') ? data['profile'] : '';
                 final name = data.containsKey('name') ? data['name'] : 'Nama tidak tersedia';
-                final specialization = data.containsKey('specialization') ? data['specialization'] : 'Spesialisasi tidak tersedia';
+                final email = data.containsKey('email') ? data['email'] : 'Email tidak tersedia';
+                final gender = data.containsKey('gender') ? data['gender'] : 'Gender tidak tersedia';
+                final saldo = data.containsKey('saldo') ? data['saldo'] : 'Saldo tidak tersedia';
+                final weight = data.containsKey('weight') ? data['weight'] : 'Berat tidak tersedia';
+                final height = data.containsKey('height') ? data['height'] : 'Tinggi tidak tersedia';
 
                 return Card(
                   elevation: 4,
@@ -63,8 +56,9 @@ class _DoctorPageState extends State<DoctorPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
+                      SizedBox(height: 5),
                       CircleAvatar(
                         radius: 40,
                         backgroundImage: profile.isEmpty
@@ -85,21 +79,41 @@ class _DoctorPageState extends State<DoctorPage> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        specialization,
+                        email,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 12),
-                      ElevatedButton(
+                      SizedBox(height: 8),
+                      Text(
+                        'Gender: $gender',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Saldo: $saldo',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Weight: $weight kg',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Height: $height cm',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      Spacer(),
+                      IconButton(
                         onPressed: () {
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
                               title: Text('Konfirmasi'),
-                              content: Text('Apakah Anda yakin ingin membanned dokter ini?'),
+                              content: Text('Apakah Anda yakin ingin menghapus pasien ini?'),
                               actions: [
                                 TextButton(
                                   onPressed: () {
@@ -111,26 +125,22 @@ class _DoctorPageState extends State<DoctorPage> {
                                   onPressed: () {
                                     FirebaseFirestore.instance
                                         .collection('users')
-                                        .doc(doctor.id)
-                                        .update({'is_active': 0}).then((_) {
+                                        .doc(user.id)
+                                        .delete().then((_) {
                                       Navigator.pop(context);
                                       setState(() {});
                                     });
                                   },
-                                  child: Text('Ya'),
+                                  child: Text('Hapus'),
                                 ),
                               ],
                             ),
                           );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text('Banned'),
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        padding: EdgeInsets.all(8),
                       ),
+                      SizedBox(height: 5),
                     ],
                   ),
                 );

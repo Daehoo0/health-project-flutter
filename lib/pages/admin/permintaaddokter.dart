@@ -34,11 +34,12 @@ class _PermintaanPageState extends State<PermintaanPage> {
             final requests = snapshot.data!.docs;
 
             return GridView.builder(
+              padding: EdgeInsets.all(8),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+                crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(), // Menyesuaikan jumlah kolom berdasarkan lebar layar
+                childAspectRatio: 3 / 4,  // Menyesuaikan tinggi card dengan rasio lebar dan tinggi
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
-                childAspectRatio: 3 / 4,
               ),
               itemCount: requests.length,
               itemBuilder: (context, index) {
@@ -54,16 +55,19 @@ class _PermintaanPageState extends State<PermintaanPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: profile.isEmpty
-                            ? null
-                            : NetworkImage(profile),
-                        child: profile.isEmpty
-                            ? Icon(Icons.person, size: 40)
-                            : null,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundImage: profile.isEmpty
+                              ? null
+                              : NetworkImage(profile),
+                          child: profile.isEmpty
+                              ? Icon(Icons.person, size: 40)
+                              : null,
+                        ),
                       ),
                       SizedBox(height: 12),
                       Text(
@@ -83,7 +87,7 @@ class _PermintaanPageState extends State<PermintaanPage> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 12),
+                      Spacer(),
                       ElevatedButton(
                         onPressed: () {
                           showDialog(
