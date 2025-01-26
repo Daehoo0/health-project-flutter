@@ -6,12 +6,14 @@ class DetailDoctorPage extends StatelessWidget {
   final String specialization;
   final String email;
   final Timestamp createdAt; // Example additional data
+  final String doctorUid; // UID Dokter untuk pencocokan
 
   DetailDoctorPage({
     required this.name,
     required this.specialization,
     required this.email,
     required this.createdAt,
+    required this.doctorUid,
   });
 
   @override
@@ -90,6 +92,69 @@ class DetailDoctorPage extends StatelessWidget {
                     style: TextStyle(fontSize: 18, color: Colors.grey[700]),
                   ),
                 ],
+              ),
+
+              SizedBox(height: 30),
+              Text('List Program', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 30),
+              // Display Programs
+              FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('programdokter')
+                    .where('owner', isEqualTo: doctorUid)
+                    .get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Text('Tidak ada program yang tersedia.');
+                  }
+
+                  var programs = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: programs.length,
+                    itemBuilder: (context, index) {
+                      var program = programs[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                program['nama'] ?? 'Nama Program Tidak Ditemukan',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Durasi: ${program['durasi'] ?? 'Tidak ada'} hari',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'Harga: Rp.${program['harga'] ?? 'Tidak ada'}',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'Deskripsi: ${program['deskripsi'] ?? 'Tidak ada'}',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),

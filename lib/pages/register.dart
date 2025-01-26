@@ -70,6 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         "listjadwalolahraga": [],
         "listprogram": [],
         'createdAt': FieldValue.serverTimestamp(),
+        "profile": "",
       };
 
       // If the role is 'Dokter', add specialization to user data
@@ -84,6 +85,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'role': 'dokter', // Set role to 'dokter'
           'specialization': specialization, // Include specialization
           'is_active': 0, // default dokter tidak aktif
+          "profile": "",
         };
         await _firestore.collection('users').doc(userCredential.user?.uid).set(userForUsersTable);
       } else {

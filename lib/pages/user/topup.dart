@@ -68,16 +68,6 @@ class _TopUpPageState extends State<TopUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.account_balance_wallet, color: Colors.white),
-            SizedBox(width: 10),
-            Text('Top Up Saldo'),
-          ],
-        ),
-        backgroundColor: Colors.teal,
-      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),

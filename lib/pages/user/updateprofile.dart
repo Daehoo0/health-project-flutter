@@ -1,7 +1,11 @@
-import 'dart:io'; // For using the File class
+import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart'; // For image picker functionality
+import 'package:firebase_storage/firebase_storage.dart'; // For Firebase Storage
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 
 class UpdateProfilePage extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -21,18 +25,17 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
   late TextEditingController _beratController;
 
   final _formKey = GlobalKey<FormState>();
-  File? _profileImage; // Store selected image
-
+  File? _profileImage;
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.userData['name']);
-    _emailController = TextEditingController(text: widget.userData['email']);
-    _genderController = TextEditingController(text: widget.userData['gender']);
-    _tinggiController = TextEditingController(text: widget.userData['height'].toString());
-    _beratController = TextEditingController(text: widget.userData['weight'].toString());
+    _nameController = TextEditingController(text: widget.userData['name'] ?? '');
+    _emailController = TextEditingController(text: widget.userData['email'] ?? '');
+    _genderController = TextEditingController(text: widget.userData['gender'] ?? '');
+    _tinggiController = TextEditingController(text: widget.userData['height']?.toString() ?? '');
+    _beratController = TextEditingController(text: widget.userData['weight']?.toString() ?? '');
   }
 
   @override
@@ -45,222 +48,177 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     super.dispose();
   }
 
-  // Function to pick an image
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path); // Update the profile image
-      });
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        if (kIsWeb) {
+          setState(() {
+            _profileImage = File(pickedFile.path); // Use the path directly for web
+          });
+        } else {
+          setState(() {
+            _profileImage = File(pickedFile.path); // Use File for non-web platforms
+          });
+        }
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error picking image: $e');
+    }
+  }
+
+  Future<String?> _uploadImage(File image) async {
+    try {
+      String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      Reference ref = FirebaseStorage.instance.ref().child('profile').child(fileName);
+
+      if (kIsWeb) {
+        final Uint8List bytes = await image.readAsBytes(); // Baca file sebagai bytes
+        UploadTask uploadTask = ref.putData(bytes);
+        TaskSnapshot snapshot = await uploadTask;
+        String downloadURL = await snapshot.ref.getDownloadURL();
+        print('Image uploaded successfully: $downloadURL'); // Logging
+        return downloadURL;
+      } else {
+        UploadTask uploadTask = ref.putFile(image);
+        TaskSnapshot snapshot = await uploadTask;
+        String downloadURL = await snapshot.ref.getDownloadURL();
+        print('Image uploaded successfully: $downloadURL'); // Logging
+        return downloadURL;
+      }
+    } catch (e) {
+      print('Error uploading image: $e'); // Tambahkan logging error
+      _showErrorSnackBar('Error uploading image: $e');
+      return null;
     }
   }
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      final updatedData = {
-        'name': _nameController.text,
-        'email': _emailController.text,
-        'gender': _genderController.text,
-        'height': double.tryParse(_tinggiController.text) ?? 0.0,
-        'weight': double.tryParse(_beratController.text) ?? 0.0,
-        // Add image URL logic if you want to upload the image to Firebase
-      };
-
       try {
-        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .where('email', isEqualTo: _emailController.text)
-            .get();
+        String? imageUrl;
 
-        if (querySnapshot.docs.isNotEmpty) {
-          String docId = querySnapshot.docs.first.id;
+        if (_profileImage != null) {
+          imageUrl = await _uploadImage(_profileImage!);
+          if (imageUrl == null) {
+            print('Failed to upload image.');
+            return; // Jangan lanjutkan jika upload gagal
+          }
+        } else {
+          imageUrl = widget.userData['profile'] ?? '';
+        }
+
+        final updatedData = {
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'gender': _genderController.text.trim(),
+          'height': double.tryParse(_tinggiController.text) ?? 0.0,
+          'weight': double.tryParse(_beratController.text) ?? 0.0,
+          'profile': imageUrl, // Simpan URL gambar
+        };
+
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
           await FirebaseFirestore.instance
               .collection('users')
-              .doc(docId)
+              .doc(user.uid)
               .update(updatedData);
 
           widget.updateUserData(updatedData);
 
+          print('Profile updated successfully in Firestore: $updatedData'); // Logging
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Profil berhasil diperbarui!'),
-              backgroundColor: Colors.green,
-            ),
+            SnackBar(content: Text('Profil berhasil diperbarui!'), backgroundColor: Colors.green),
           );
-
           Navigator.pop(context);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Pengguna dengan email tersebut tidak ditemukan.'),
-              backgroundColor: Colors.red,
-            ),
-          );
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Terjadi kesalahan: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        print('Error saving profile: $e'); // Logging error
+        _showErrorSnackBar('Error saving profile: $e');
       }
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.person, color: Colors.white),
-            SizedBox(width: 10),
-            Text('Edit Profil'),
-          ],
-        ),
+        title: Text('Edit Profil'),
         backgroundColor: Colors.teal,
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: _profileImage != null
+                    ? (kIsWeb
+                    ? NetworkImage(_profileImage!.path) // For web, use the path directly
+                    : FileImage(_profileImage!) as ImageProvider) // For other platforms, use FileImage
+                    : (widget.userData['profile'] != null && widget.userData['profile'].isNotEmpty
+                    ? NetworkImage(widget.userData['profile'])
+                    : null),
+                child: _profileImage == null &&
+                    (widget.userData['profile'] == null || widget.userData['profile'].isEmpty)
+                    ? Icon(Icons.person, color: Colors.white, size: 50)
+                    : null,
               ),
-              elevation: 5,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Display Profile Picture as a CircleAvatar
-                    Center(
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.teal,
-                        backgroundImage: _profileImage != null
-                            ? FileImage(_profileImage!) // Show selected image
-                            : null,
-                        child: _profileImage == null
-                            ? Icon(Icons.person, color: Colors.white, size: 50)
-                            : null,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-
-                    // Button to select a new image
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: _pickImage,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 30),
-                        ),
-                        child: Text(
-                          'Pilih Gambar Profil',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Ubah Informasi Profil Anda',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _nameController,
-                      label: 'Nama',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nama tidak boleh kosong!';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _emailController,
-                      label: 'Email',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Email tidak boleh kosong!';
-                        }
-                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                          return 'Masukkan email yang valid!';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _genderController,
-                      label: 'Gender',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Gender tidak boleh kosong!';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _tinggiController,
-                      label: 'Tinggi Badan (cm)',
-                      keyboardType: TextInputType.number,
-                    ),
-                    SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _beratController,
-                      label: 'Berat Badan (kg)',
-                      keyboardType: TextInputType.number,
-                    ),
-                    SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _saveProfile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                        ),
-                        child: Text(
-                          'Simpan',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: Text('Pilih Gambar Profil'),
               ),
-            ),
+              SizedBox(height: 20),
+              _buildTextField(_nameController, 'Nama'),
+              SizedBox(height: 20),
+              _buildTextField(_emailController, 'Email', isEmail: true),
+              SizedBox(height: 20),
+              _buildTextField(_genderController, 'Gender'),
+              SizedBox(height: 20),
+              _buildTextField(_tinggiController, 'Tinggi Badan (cm)', isNumber: true),
+              SizedBox(height: 20),
+              _buildTextField(_beratController, 'Berat Badan (kg)', isNumber: true),
+              SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: _saveProfile,
+                child: Text('Simpan'),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
-  }) {
+  Widget _buildTextField(TextEditingController controller, String label,
+      {bool isNumber = false, bool isEmail = false}) {
     return TextFormField(
       controller: controller,
-      keyboardType: keyboardType,
+      keyboardType:
+      isNumber ? TextInputType.number : (isEmail ? TextInputType.emailAddress : TextInputType.text),
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(),
       ),
-      validator: validator,
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return '$label tidak boleh kosong.';
+        }
+        if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+          return 'Masukkan email yang valid.';
+        }
+        return null;
+      },
     );
   }
 }

@@ -15,6 +15,10 @@ class _SearchDoctorPageState extends State<SearchDoctorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Cari Dokter"),
+        backgroundColor: Colors.teal,
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         child: Column(
@@ -29,7 +33,7 @@ class _SearchDoctorPageState extends State<SearchDoctorPage> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Ketik nama dokter...',
+                hintText: 'Ketik email dokter...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0), // Rounded corners
                   borderSide: BorderSide(color: Colors.teal),
@@ -63,12 +67,12 @@ class _SearchDoctorPageState extends State<SearchDoctorPage> {
                     );
                   }
 
+                  // Filter doctors by search query (based on email in this case)
                   final List<QueryDocumentSnapshot> doctors = snapshot.data!.docs
                       .where((doc) {
-                    final name = 'dr. ' + doc['name'].toLowerCase();
-                    return name.contains(_searchQuery.toLowerCase());
-                  })
-                      .toList();
+                    final email = doc['email'].toLowerCase();
+                    return email.contains(_searchQuery.toLowerCase());
+                  }).toList();
 
                   return ListView.builder(
                     itemCount: doctors.length,
@@ -98,14 +102,16 @@ class _SearchDoctorPageState extends State<SearchDoctorPage> {
                             style: TextStyle(color: Colors.grey[600]),
                           ),
                           onTap: () {
+                            // Navigate to DetailDoctorPage and pass uid
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => DetailDoctorPage(
+                                  doctorUid: doctor.id, // Using the document ID as uid
                                   name: name,
                                   specialization: specialization,
                                   email: doctor['email'],
-                                  createdAt: doctor['createdAt'], // Example additional data
+                                  createdAt: doctor['createdAt'],
                                 ),
                               ),
                             );

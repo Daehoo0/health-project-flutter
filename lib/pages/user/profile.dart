@@ -65,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
+        title: Text('Profil Pengguna'),
         actions: [
           IconButton(
             icon: Icon(Icons.exit_to_app),
@@ -95,14 +96,20 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Avatar Profil
                     Center(
-                      child: CircleAvatar(
+                      child:
+                      CircleAvatar(
                         radius: 50,
-                        backgroundImage: AssetImage('assets/profile.png'), // Ganti dengan gambar profil jika tersedia
+                        backgroundImage: (userData['profile'] != null && userData['profile'].isNotEmpty)
+                            ? NetworkImage(userData['profile']) // Tampilkan dari Firestore
+                            : AssetImage('lib/assets/profile.jpg') as ImageProvider, // Default dari asset
                         backgroundColor: Colors.teal[100],
                       ),
                     ),
                     SizedBox(height: 20),
+
+                    // Nama Pengguna
                     Center(
                       child: Text(
                         userData['name'] ?? 'N/A',
@@ -115,6 +122,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     SizedBox(height: 10),
                     Divider(),
+
+                    // Informasi Pengguna
                     ListTile(
                       leading: Icon(Icons.email, color: Colors.teal),
                       title: Text('Email'),
@@ -144,6 +153,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               SizedBox(height: 20),
+
+              // Tombol Edit dan Logout
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
