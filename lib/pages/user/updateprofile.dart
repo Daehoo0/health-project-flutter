@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data'; // Untuk MemoryImage dan Uint8List
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_project_flutter/AuthProvider.dart';
+import 'package:health_project_flutter/main.dart';
 import 'package:image_picker/image_picker.dart';
 
 class UpdateProfilePage extends StatefulWidget {
@@ -19,7 +23,9 @@ class UpdateProfilePage extends StatefulWidget {
 
 class _UpdateProfilePageState extends State<UpdateProfilePage> {
   Uint8List? _webImageBytes;
-
+  final ImagePicker _picker = ImagePicker();
+  String _base64String = "";
+  Uint8List? _imageBytes;
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _genderController;
@@ -28,8 +34,13 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
 
   final _formKey = GlobalKey<FormState>();
   File? _profileImage;
-  final ImagePicker _picker = ImagePicker();
-
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  void loadgambar() async{
+    DocumentSnapshot snapshot = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
+    List<Map<String, dynamic>> data = [];
+    data.add(snapshot.data() as Map<String, dynamic>);
+    _base64String = data[0]["profile"];
+  }
   @override
   void initState() {
     super.initState();
@@ -38,34 +49,35 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     _genderController = TextEditingController(text: widget.userData['gender'] ?? '');
     _tinggiController = TextEditingController(text: widget.userData['height']?.toString() ?? '');
     _beratController = TextEditingController(text: widget.userData['weight']?.toString() ?? '');
+    loadgambar();
   }
 
   Future<void> _pickImage() async {
     try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile = await picker.pickImage(
-          source: ImageSource.gallery,
-          maxWidth: 1024,
-          maxHeight: 1024,
-          imageQuality: 80
-      );
-
-      if (pickedFile != null) {
-        if (kIsWeb) {
-          // For web, store bytes directly
-          final bytes = await pickedFile.readAsBytes();
+      if (kIsWeb) {
+        // Handle image picking for web
+        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          final bytes = await image.readAsBytes();
           setState(() {
-            _webImageBytes = bytes;
+            _imageBytes = bytes;
+            _base64String = base64Encode(bytes);
           });
-        } else {
-          // For mobile, use File
+        }
+      } else {
+        // Handle image picking for mobile
+        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          final File file = File(image.path);
+          final bytes = await file.readAsBytes();
           setState(() {
-            _profileImage = File(pickedFile.path);
+            _imageBytes = bytes;
+            _base64String = base64Encode(bytes);
           });
         }
       }
     } catch (e) {
-      _showErrorSnackBar('Error picking image: $e');
+      debugPrint('Error picking image: $e');
     }
   }
 
@@ -87,24 +99,9 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
 
   Future<String?> _uploadImage() async {
     try {
-      String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      Reference ref = FirebaseStorage.instance.ref().child('profile').child(fileName);
-
-      if (kIsWeb) {
-        if (_webImageBytes == null) return widget.userData['profile'];
-
-        UploadTask uploadTask = ref.putData(_webImageBytes!);
-        TaskSnapshot snapshot = await uploadTask;
-        String downloadURL = await snapshot.ref.getDownloadURL();
-        return 'profile/$fileName'; // Return full storage path
-      } else {
-        if (_profileImage == null) return widget.userData['profile'];
-
-        UploadTask uploadTask = ref.putFile(_profileImage!);
-        TaskSnapshot snapshot = await uploadTask;
-        String downloadURL = await snapshot.ref.getDownloadURL();
-        return 'profile/$fileName'; // Return full storage path
-      }
+      await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).update({
+        'profile': _base64String,
+      });
     } catch (e) {
       _showErrorSnackBar('Error uploading image: $e');
       return null;
@@ -115,15 +112,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     if (_formKey.currentState!.validate()) {
       try {
         String? imageUrl;
-
-        if (_profileImage != null) {
-          imageUrl = await _uploadImage();
-          if (imageUrl == null) {
-            return null; // Jangan lanjutkan jika upload gagal
-          }
-        } else {
-          imageUrl = widget.userData['profile'] ?? '';
-        }
+        await _uploadImage();
 
         final updatedData = {
           'name': _nameController.text.trim(),
@@ -131,7 +120,6 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
           'gender': _genderController.text.trim(),
           'height': double.tryParse(_tinggiController.text) ?? 0.0,
           'weight': double.tryParse(_beratController.text) ?? 0.0,
-          'profile': imageUrl,
         };
 
         User? user = FirebaseAuth.instance.currentUser;
@@ -165,17 +153,18 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: _getImageProvider(),
-                child: _getImageProvider() == null
-                    ? Icon(Icons.person, color: Colors.white, size: 50)
-                    : null,
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: Text('Pilih Gambar Profil'),
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundImage: _imageBytes != null ? MemoryImage(_imageBytes!) : null,
+                  child: _imageBytes == null
+                      ? const Icon(
+                    Icons.camera_alt,
+                    size: 40,
+                  )
+                      : null,
+                ),
               ),
               SizedBox(height: 20),
               _buildTextField(_nameController, 'Nama'),

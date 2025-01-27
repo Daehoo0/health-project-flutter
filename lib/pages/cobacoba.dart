@@ -1,191 +1,103 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Top Navigation Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: cobaini(),
+      home: const UpdateProfilePage(),
     );
   }
 }
-class cobaini extends StatelessWidget {
-  const cobaini({super.key});
-  Future<void> saveData() async {
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('yyyy-MM-dd').format(now);
-    final firestore = FirebaseFirestore.instance;
-    // Instance Firestore
+
+class UpdateProfilePage extends StatefulWidget {
+  const UpdateProfilePage({Key? key}) : super(key: key);
+
+  @override
+  State<UpdateProfilePage> createState() => _UpdateProfilePageState();
+}
+
+class _UpdateProfilePageState extends State<UpdateProfilePage> {
+  final ImagePicker _picker = ImagePicker();
+  String? _base64String;
+  Uint8List? _imageBytes;
+
+  Future<void> _pickImage() async {
     try {
-      // 1. Ambil data dari dokumen
-      final document = await firestore.collection('users').doc("8gckLYOPL6h50jkJSed5k0sc4qE2").get();
-
-      if (document.exists) {
-        // Ambil data saat ini dari field 'list_program'
-        Map<String, dynamic> currentData = document.data()!;
-        List<dynamic> currentList = currentData['list_program'] ?? [];
-        // 2. Tambahkan data baru ke list_program
-        Map<String, dynamic> newProgram = {
-          'id': 'YyYsvl9bOB7pFzmC3JOb',
-          'nama': "Program Mata",
-          'deskripsi':"ini deskripsi",
-          'tanggal_beli':DateTime.now(),
-          'tanggal_selesai': DateTime.now(),
-          'harga': true,
-          'report':[
-            {
-              "untuk_tanggal":DateTime.now(),
-              'isi_makanan':[
-                {
-                  "nama":'nasi goreng',
-                  "done":false,
-                },
-                {
-                  "nama":'cakue',
-                  "done":false,
-                },
-              ],
-              'isi_olahraga':[
-                {
-                  "nama":'lari santai',
-                  "done":false,
-                },
-                {
-                  "nama":'jalan santai',
-                  "done":false,
-                },
-              ]
-            },
-            {
-              "untuk_tanggal":DateTime.now(),
-              'isi_makanan':[
-                {
-                  "nama":'nasi kuning',
-                  "done":false,
-                },
-                {
-                  "nama":'bebek goreng',
-                  "done":false,
-                },
-              ],
-              'isi_olahraga':[
-                {
-                  "nama":'lari berat',
-                  "done":false,
-                },
-                {
-                  "nama":'jalan berat',
-                  "done":false,
-                },
-              ]
-            },
-          ],
-          'owner':true
-        };
-
-        currentList.add(newProgram);
-
-        // 3. Update data ke Firestore
-        await firestore.collection('users').doc("8gckLYOPL6h50jkJSed5k0sc4qE2").update({
-          'list_program': currentList,
-        });
-
-        debugPrint("Data berhasil diperbarui!");
+      if (kIsWeb) {
+        // Handle image picking for web
+        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _imageBytes = bytes;
+            _base64String = base64Encode(bytes);
+          });
+        }
       } else {
-        debugPrint("Dokumen tidak ditemukan!");
+        // Handle image picking for mobile
+        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          final File file = File(image.path);
+          final bytes = await file.readAsBytes();
+          setState(() {
+            _imageBytes = bytes;
+            _base64String = base64Encode(bytes);
+          });
+        }
       }
     } catch (e) {
-      debugPrint("Terjadi kesalahan: $e");
+      debugPrint('Error picking image: $e');
     }
   }
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ElevatedButton(
-        onPressed: saveData,
-        child: const Text("Save Data to Firebase"),
-      ),
-    );
+
+  void _updateProfile() {
+    if (_base64String != null) {
+      print('Base64 String: $_base64String');
+    } else {
+      print('No image selected.');
+    }
   }
-}
-class ProgramCekMataScreen extends StatefulWidget {
-  const ProgramCekMataScreen({super.key});
-
-  @override
-  State<ProgramCekMataScreen> createState() => _ProgramCekMataScreenState();
-}
-
-class _ProgramCekMataScreenState extends State<ProgramCekMataScreen> {
-  // Data array untuk checkbox
-  final List<Map<String, dynamic>> _programList = [
-    {'name': 'Program 1', 'isChecked': true},
-    {'name': 'Program 2', 'isChecked': false},
-    {'name': 'Program 3', 'isChecked': true},
-    {'name': 'Program 4', 'isChecked': false},
-    {'name': 'Program 5', 'isChecked': true},
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Program Cek Mata'),
-        centerTitle: true,
+        title: const Text('Update Profile'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Center(
-              child: Text(
-                'Program Cek Mata',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+            GestureDetector(
+              onTap: _pickImage,
+              child: CircleAvatar(
+                radius: 60,
+                backgroundImage: _imageBytes != null ? MemoryImage(_imageBytes!) : null,
+                child: _imageBytes == null
+                    ? const Icon(
+                  Icons.camera_alt,
+                  size: 40,
+                )
+                    : null,
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Deskripsi: Program ini membantu Anda untuk memeriksa kesehatan mata melalui berbagai opsi program yang tersedia.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'List Program',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: _programList.map((program) {
-                    return CheckboxListTile(
-                      title: Text(program['name']),
-                      value: program['isChecked'],
-                      onChanged: (bool? value) {
-                        setState(() {
-                          program['isChecked'] = value ?? false;
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _updateProfile,
+              child: const Text('Update Profile'),
             ),
           ],
         ),
