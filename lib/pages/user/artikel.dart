@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../firebase_options.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ArticleListPage extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -38,20 +39,31 @@ class ArticleListPage extends StatelessWidget {
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                    leading: Image.network(snapshot.data![index]["gambar_url"],width: 100,height: 100,),
+                    leading: Image.network(
+                      snapshot.data![index]["thumbnail_url"] ?? 'https://via.placeholder.com/150', // Gunakan placeholder jika gambar_url null
+                      width: 100,
+                      height: 100,
+                    ),
                     title: Text(snapshot.data![index]['judul'] ?? 'No title'),
                     subtitle: Text(snapshot.data![index]['deskripsi'] ?? 'No details'),
-                    onTap: (){
-                      if(snapshot.data![index]['source'] == "personal"){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => PersonalArticleDetailPage(idartikel:snapshot.data![index]["id"])),
-                        );
-                      }else{
-
+                  onTap: () async {
+                    if (snapshot.data![index]['source'] == "personal") {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => PersonalArticleDetailPage(idartikel: snapshot.data![index]["id"])),
+                      );
+                    } else {
+                      // Open the URL if source is not 'personal'
+                      final url = snapshot.data![index]['url_link']; // Assuming 'source' contains the URL
+                      if (url != null && await canLaunch(url)) {
+                        await launch(url);
+                      } else {
+                        // Handle the error if the URL cannot be opened
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open the article')));
                       }
-                      print(snapshot.data![index]['source']);
-                    },
+                    }
+                  }
+                  ,
                 );
               },
             ),
@@ -113,7 +125,7 @@ class PersonalArticleDetailPage extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: Text(
-                      snapshot.data![0]['judul'],
+                      snapshot.data![0]['judul'] ?? 'No title',
                       style: TextStyle(
                         color: Color(0xFF111418),
                         fontSize: 22,

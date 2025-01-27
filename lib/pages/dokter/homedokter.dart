@@ -31,7 +31,7 @@ class _HomeDokterState extends State<HomeDokter> {
 
   // Daftar widget untuk setiap halaman
   final List<Widget> menuPages = [
-    ArtikelPage(),
+    ArtikelDokterPage(),
     ChatPage(),
     ProgramPage(),
     ProfilePage(),

@@ -11,45 +11,43 @@ class _TopUpPageState extends State<TopUpPage> {
   final TextEditingController _amountController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
   Future<void> _submitTopUp() async {
     if (_formKey.currentState!.validate()) {
       final amount = int.parse(_amountController.text);
+      final user = FirebaseAuth.instance.currentUser!;
 
       try {
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user == null) {
-          throw Exception("Pengguna tidak login.");
-        }
-        String email = user.email!;
-
-        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        final userDoc = await FirebaseFirestore.instance
             .collection('users')
-            .where('email', isEqualTo: email)
+            .where('email', isEqualTo: user.email)
             .get();
 
-        if (querySnapshot.docs.isNotEmpty) {
-          DocumentSnapshot userDoc = querySnapshot.docs.first;
-          String docId = userDoc.id;
-          int currentBalance = userDoc.get('balance') ?? 0;
-
-          int updatedBalance = currentBalance + amount;
+        if (userDoc.docs.isNotEmpty) {
+          final docId = userDoc.docs.first.id;
           await FirebaseFirestore.instance
               .collection('users')
               .doc(docId)
-              .update({'balance': updatedBalance});
+              .update({
+            'saldo': FieldValue.increment(amount),
+          });
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Top up berhasil! Saldo sekarang: Rp $updatedBalance'),
+              content: Text('Top up berhasil! Saldo Anda telah diperbarui.'),
               backgroundColor: Colors.green,
             ),
           );
-
           _amountController.clear();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Pengguna dengan email tersebut tidak ditemukan.'),
+              content: Text('Data pengguna tidak ditemukan.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -57,7 +55,7 @@ class _TopUpPageState extends State<TopUpPage> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Terjadi kesalahan: $e'),
+            content: Text('Error saat memperbarui saldo: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -65,77 +63,64 @@ class _TopUpPageState extends State<TopUpPage> {
     }
   }
 
+  void _showSnackbarMessage(String message, {Color backgroundColor = Colors.red}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              elevation: 5,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Masukkan Jumlah Top Up',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 20),
-                    TextFormField(
-                      controller: _amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Jumlah Saldo',
-                        hintText: 'Contoh: 50000',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Jumlah saldo tidak boleh kosong!';
-                        }
-                        final amount = int.tryParse(value);
-                        if (amount == null) {
-                          return 'Masukkan angka yang valid!';
-                        }
-                        if (amount < 10000) {
-                          return 'Jumlah saldo minimal Rp 10.000!';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _submitTopUp,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                        ),
-                        child: Text(
-                          'Top Up',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
+      appBar: AppBar(
+        title: Text('Top Up'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Jumlah Top Up (Rp)',
+                  border: OutlineInputBorder(),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    _showSnackbarMessage('Masukkan jumlah top up!');
+                    return 'Masukkan jumlah';
+                  }
+                  if (int.tryParse(value) == null) {
+                    _showSnackbarMessage('Masukkan angka valid!');
+                    return 'Masukkan angka valid';
+                  }
+                  if (int.parse(value) < 10000) {
+                    _showSnackbarMessage('Minimal top up adalah Rp 10.000!');
+                    return 'Minimal Rp 10.000';
+                  }
+                  return null;
+                },
               ),
-            ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _submitTopUp();
+                  } else {
+                    _showSnackbarMessage(
+                        'Harap periksa kembali inputan Anda!',
+                        backgroundColor: Colors.orange);
+                  }
+                },
+                child: Text('Top Up'),
+              ),
+            ],
           ),
         ),
       ),

@@ -36,6 +36,7 @@ class LoginScreen extends StatelessWidget {
         },
       );
     }
+
     Future<void> _login() async {
       final String email = emailController.text.trim();
       final String password = passwordController.text.trim();
@@ -47,11 +48,10 @@ class LoginScreen extends StatelessWidget {
 
       // Periksa apakah email dan password sesuai untuk admin
       if (email == 'admin' && password == 'admin') {
-        // Langsung arahkan ke HomeAdmin jika admin
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomeAdmin(userData: {}), // Anda bisa memberikan data dummy untuk admin
+            builder: (context) => HomeAdmin(userData: {}),
           ),
         );
         return;
@@ -65,36 +65,38 @@ class LoginScreen extends StatelessWidget {
 
         String uid = userCredential.user!.uid;
         context.read<DataLogin>().setuserlogin(uid);
-        // Cek apakah pengguna adalah dokter
-        DocumentSnapshot doctorDoc = await _firestore.collection('dokter').doc(uid).get();
-        if (doctorDoc.exists) {
-          // Jika ditemukan di collection 'doctors', arahkan ke HomeDokter
-          Map<String, dynamic> doctorData = doctorDoc.data() as Map<String, dynamic>;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeDokter(userData: doctorData), // Berikan doctorData
-            ),
-          );
-          return;
-        }
 
-        // Cek apakah pengguna adalah pasien
-        DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+        // Ambil data pengguna berdasarkan UID
+        DocumentSnapshot userDoc =
+        await _firestore.collection('users').doc(uid).get();
+
         if (userDoc.exists) {
-          // Jika ditemukan di collection 'users', arahkan ke HomeUser
           Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeUser(userData: userData), // Berikan userData
-            ),
-          );
-          return;
-        }
+          print(userData['role']);
 
-        // Jika akun tidak ditemukan
-        _showErrorDialog('Akun tidak ditemukan!');
+          if (userData['role'] == 'dokter') {
+            // Jika role adalah dokter, arahkan ke HomeDokter
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeDokter(userData: userData),
+              ),
+            );
+          } else if (userData['role'] == 'Pasien') {
+            // Jika role adalah pasien, arahkan ke HomeUser
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeUser(userData: userData),
+              ),
+            );
+          } else {
+            _showErrorDialog('Role tidak valid!');
+          }
+          return;
+        } else {
+          _showErrorDialog('Akun tidak ditemukan!');
+        }
       } on FirebaseAuthException catch (e) {
         _showErrorDialog(e.message ?? 'Login gagal! Silakan coba lagi.');
       }

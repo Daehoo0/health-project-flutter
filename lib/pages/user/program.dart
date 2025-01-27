@@ -153,7 +153,10 @@ class ProgramDetailPage extends StatelessWidget {
                               Icon(Icons.attach_money, size: 20, color: Colors.grey),
                               SizedBox(width: 8),
                               Text(
-                                CurrencyFormat.convertToIdr(snapshot.data![0]["harga"], 2),
+                                CurrencyFormat.convertToIdr(
+                                    double.tryParse(snapshot.data![0]["harga"].toString()) ?? 0.0, // Convert to double safely
+                                    2
+                                ),
                                 style: TextStyle(fontSize: 14),
                               ),
                             ],

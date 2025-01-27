@@ -82,7 +82,7 @@ class _HomeUserState extends State<HomeUser> {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.fastfood), label: 'Tambah'),
           BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Kalori'),
-          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Goals'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_tree_sharp), label: 'Goals'),
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Konsultasi'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Dokter'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Program'),

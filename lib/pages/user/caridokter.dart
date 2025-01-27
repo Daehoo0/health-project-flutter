@@ -15,10 +15,6 @@ class _SearchDoctorPageState extends State<SearchDoctorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Cari Dokter"),
-        backgroundColor: Colors.teal,
-      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         child: Column(
@@ -33,7 +29,7 @@ class _SearchDoctorPageState extends State<SearchDoctorPage> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Ketik email dokter...',
+                hintText: 'Ketik nama dokter...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0), // Rounded corners
                   borderSide: BorderSide(color: Colors.teal),
@@ -70,8 +66,8 @@ class _SearchDoctorPageState extends State<SearchDoctorPage> {
                   // Filter doctors by search query (based on email in this case)
                   final List<QueryDocumentSnapshot> doctors = snapshot.data!.docs
                       .where((doc) {
-                    final email = doc['email'].toLowerCase();
-                    return email.contains(_searchQuery.toLowerCase());
+                    final name = doc['name'].toLowerCase();
+                    return name.contains(_searchQuery.toLowerCase());
                   }).toList();
 
                   return ListView.builder(

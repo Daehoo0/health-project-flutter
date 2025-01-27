@@ -1,11 +1,11 @@
+import 'dart:typed_data'; // Untuk MemoryImage dan Uint8List
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // For Firebase Storage
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart';
 
 class UpdateProfilePage extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -18,6 +18,8 @@ class UpdateProfilePage extends StatefulWidget {
 }
 
 class _UpdateProfilePageState extends State<UpdateProfilePage> {
+  Uint8List? _webImageBytes;
+
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _genderController;
@@ -38,27 +40,27 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     _beratController = TextEditingController(text: widget.userData['weight']?.toString() ?? '');
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _genderController.dispose();
-    _tinggiController.dispose();
-    _beratController.dispose();
-    super.dispose();
-  }
-
   Future<void> _pickImage() async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+          source: ImageSource.gallery,
+          maxWidth: 1024,
+          maxHeight: 1024,
+          imageQuality: 80
+      );
+
       if (pickedFile != null) {
         if (kIsWeb) {
+          // For web, store bytes directly
+          final bytes = await pickedFile.readAsBytes();
           setState(() {
-            _profileImage = File(pickedFile.path); // Use the path directly for web
+            _webImageBytes = bytes;
           });
         } else {
+          // For mobile, use File
           setState(() {
-            _profileImage = File(pickedFile.path); // Use File for non-web platforms
+            _profileImage = File(pickedFile.path);
           });
         }
       }
@@ -67,27 +69,43 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     }
   }
 
-  Future<String?> _uploadImage(File image) async {
+  ImageProvider? _getImageProvider() {
+    if (kIsWeb) {
+      return _webImageBytes != null
+          ? MemoryImage(_webImageBytes!)
+          : (widget.userData['profile'] != null && widget.userData['profile'].isNotEmpty
+          ? NetworkImage(widget.userData['profile'])
+          : null);
+    } else {
+      return _profileImage != null
+          ? FileImage(_profileImage!)
+          : (widget.userData['profile'] != null && widget.userData['profile'].isNotEmpty
+          ? NetworkImage(widget.userData['profile'])
+          : null);
+    }
+  }
+
+  Future<String?> _uploadImage() async {
     try {
       String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
       Reference ref = FirebaseStorage.instance.ref().child('profile').child(fileName);
 
       if (kIsWeb) {
-        final Uint8List bytes = await image.readAsBytes(); // Baca file sebagai bytes
-        UploadTask uploadTask = ref.putData(bytes);
+        if (_webImageBytes == null) return widget.userData['profile'];
+
+        UploadTask uploadTask = ref.putData(_webImageBytes!);
         TaskSnapshot snapshot = await uploadTask;
         String downloadURL = await snapshot.ref.getDownloadURL();
-        print('Image uploaded successfully: $downloadURL'); // Logging
-        return downloadURL;
+        return 'profile/$fileName'; // Return full storage path
       } else {
-        UploadTask uploadTask = ref.putFile(image);
+        if (_profileImage == null) return widget.userData['profile'];
+
+        UploadTask uploadTask = ref.putFile(_profileImage!);
         TaskSnapshot snapshot = await uploadTask;
         String downloadURL = await snapshot.ref.getDownloadURL();
-        print('Image uploaded successfully: $downloadURL'); // Logging
-        return downloadURL;
+        return 'profile/$fileName'; // Return full storage path
       }
     } catch (e) {
-      print('Error uploading image: $e'); // Tambahkan logging error
       _showErrorSnackBar('Error uploading image: $e');
       return null;
     }
@@ -99,10 +117,9 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
         String? imageUrl;
 
         if (_profileImage != null) {
-          imageUrl = await _uploadImage(_profileImage!);
+          imageUrl = await _uploadImage();
           if (imageUrl == null) {
-            print('Failed to upload image.');
-            return; // Jangan lanjutkan jika upload gagal
+            return null; // Jangan lanjutkan jika upload gagal
           }
         } else {
           imageUrl = widget.userData['profile'] ?? '';
@@ -114,35 +131,24 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
           'gender': _genderController.text.trim(),
           'height': double.tryParse(_tinggiController.text) ?? 0.0,
           'weight': double.tryParse(_beratController.text) ?? 0.0,
-          'profile': imageUrl, // Simpan URL gambar
+          'profile': imageUrl,
         };
 
         User? user = FirebaseAuth.instance.currentUser;
         if (user != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .update(updatedData);
-
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).update(updatedData);
           widget.updateUserData(updatedData);
-
-          print('Profile updated successfully in Firestore: $updatedData'); // Logging
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Profil berhasil diperbarui!'), backgroundColor: Colors.green),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profil berhasil diperbarui!'), backgroundColor: Colors.green));
           Navigator.pop(context);
         }
       } catch (e) {
-        print('Error saving profile: $e'); // Logging error
         _showErrorSnackBar('Error saving profile: $e');
       }
     }
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
   }
 
   @override
@@ -161,15 +167,8 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundImage: _profileImage != null
-                    ? (kIsWeb
-                    ? NetworkImage(_profileImage!.path) // For web, use the path directly
-                    : FileImage(_profileImage!) as ImageProvider) // For other platforms, use FileImage
-                    : (widget.userData['profile'] != null && widget.userData['profile'].isNotEmpty
-                    ? NetworkImage(widget.userData['profile'])
-                    : null),
-                child: _profileImage == null &&
-                    (widget.userData['profile'] == null || widget.userData['profile'].isEmpty)
+                backgroundImage: _getImageProvider(),
+                child: _getImageProvider() == null
                     ? Icon(Icons.person, color: Colors.white, size: 50)
                     : null,
               ),
@@ -200,12 +199,12 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      {bool isNumber = false, bool isEmail = false}) {
+  Widget _buildTextField(TextEditingController controller, String label, {bool isNumber = false, bool isEmail = false}) {
     return TextFormField(
       controller: controller,
-      keyboardType:
-      isNumber ? TextInputType.number : (isEmail ? TextInputType.emailAddress : TextInputType.text),
+      keyboardType: isNumber
+          ? TextInputType.number
+          : (isEmail ? TextInputType.emailAddress : TextInputType.text),
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(),

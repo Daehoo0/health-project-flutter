@@ -17,6 +17,9 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
   TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
+  // State untuk menyimpan data chat
+  List<Map<String, dynamic>> _chatMessages = [];
+
   @override
   void dispose() {
     _messageController.dispose();
@@ -145,7 +148,7 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
                         radius: 24,
                         child: Icon(Icons.person, size: 30),
                       ),
-                      title: Text('dr. ' + doctorData['name'] ?? 'Nama Dokter'),
+                      title: Text('dr. ' + (doctorData['name'] ?? 'Nama Dokter')),
                       onTap: () {
                         if (senderId.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -155,6 +158,7 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
                         }
                         setState(() {
                           selectedDoctorId = doctorId;
+                          _chatMessages = []; // Reset chat messages ketika dokter dipilih
                         });
                       },
                     ),
@@ -169,6 +173,10 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
   }
 
   Widget _buildChatPanel() {
+    if (selectedDoctorId == null) {
+      return Center(child: Text('Pilih dokter terlebih dahulu'));
+    }
+
     return Column(
       children: [
         // Doctor info header
@@ -181,7 +189,9 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
                 .doc(selectedDoctorId)
                 .snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data!.data() == null) return Container();
+              if (!snapshot.hasData || snapshot.data!.data() == null) {
+                return Center(child: CircularProgressIndicator());
+              }
 
               final doctorData = snapshot.data!.data() as Map<String, dynamic>;
               return Row(
@@ -192,7 +202,7 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    'dr. ' + doctorData['name'] ?? 'Nama Dokter',
+                    'dr. ' + (doctorData['name'] ?? 'Nama Dokter'),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                 ],
@@ -208,23 +218,30 @@ class _KonsultasiPageState extends State<ChatConsultationPage> {
                 .collection('chat')
                 .where('sender', whereIn: [senderId, selectedDoctorId])
                 .where('receiver', whereIn: [senderId, selectedDoctorId])
-                .orderBy('timestamp', descending: true)
+                .orderBy('timestamp', descending: false) // Urutkan dari yang terlama
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(child: CircularProgressIndicator());
               }
 
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Center(child: Text('Belum ada pesan'));
+              // Update state lokal dengan data chat terbaru
+              if (snapshot.hasData) {
+                _chatMessages = snapshot.data!.docs.map((doc) {
+                  return doc.data() as Map<String, dynamic>;
+                }).toList();
               }
+
+              // Scroll ke bawah setelah data selesai dimuat
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _scrollToBottom();
+              });
 
               return ListView.builder(
                 controller: _scrollController,
-                reverse: true,
-                itemCount: snapshot.data!.docs.length,
+                itemCount: _chatMessages.length,
                 itemBuilder: (context, index) {
-                  final chatData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                  final chatData = _chatMessages[index];
                   final message = chatData['message'] ?? '';
                   final timestamp = chatData['timestamp'] as Timestamp?;
                   final formattedTime = _formatTimestamp(timestamp);
