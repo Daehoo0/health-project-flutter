@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:health_project_flutter/pages/dokter/editprogram.dart';
 import 'addprogram.dart';
 
 class ProgramPage extends StatelessWidget {
@@ -51,51 +50,14 @@ class ProgramPage extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditProgramPage(program: program),
-                            ),
-                          );
+                          // Logika edit program
                         },
                         icon: Icon(Icons.edit, color: Colors.orange),
                       ),
                       IconButton(
                         onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text('Konfirmasi Hapus'),
-                                content: Text('Apakah Anda yakin ingin menghapus program ini?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(); // Tutup dialog
-                                    },
-                                    child: Text('Batal'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      // Hapus program
-                                      _firestore
-                                          .collection('programdokter')
-                                          .doc(program.id)
-                                          .delete()
-                                          .then((value) {
-                                        Navigator.of(context).pop(); // Tutup dialog
-                                      }).catchError((error) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Gagal menghapus data: $error')),
-                                        );
-                                      });
-                                    },
-                                    child: Text('Hapus'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
+                          // Logika hapus program
+                          _firestore.collection('programdokter').doc(program.id).delete();
                         },
                         icon: Icon(Icons.delete, color: Colors.red),
                       ),
