@@ -2,10 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:health_project_flutter/AuthProvider.dart';
-import 'package:health_project_flutter/pages/dokter/profile.dart';
 import 'package:health_project_flutter/pages/login.dart';
-import 'package:health_project_flutter/pages/user/hitungkalori.dart';
-import 'package:health_project_flutter/pages/user/program.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
@@ -33,7 +30,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: ProgramListPage(),
+        home: LoginScreen(),
       ),
     );
   }
