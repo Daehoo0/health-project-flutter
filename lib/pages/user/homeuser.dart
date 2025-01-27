@@ -36,7 +36,7 @@ class _HomeUserState extends State<HomeUser> {
     print(context.read<DataLogin>().uiduser);
     final List<Widget> _pages = [
       AddFoodPage(),
-      CalorieCounterPage(),
+      Caloridarifoto(),
       Goals(userData: widget.userData), // Melewatkan userData ke Goals
       ChatConsultationPage(),
       SearchDoctorPage(),
