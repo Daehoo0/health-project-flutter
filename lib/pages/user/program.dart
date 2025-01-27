@@ -39,9 +39,11 @@ class _ProgramListPageState extends State<ProgramListPage> {
       snapshot.docs.forEach((doc) {
         Map<String, dynamic> docData = doc.data() as Map<String, dynamic>;
         var bisa = true;
-        for(var cek in arrdatauserbeli["list_program"]){
-          if(doc.id == cek["id"]){
-            bisa = false;
+        if(arrdatauserbeli["list_program"] != null){
+          for(var cek in arrdatauserbeli["list_program"]){
+            if(doc.id == cek["id"]){
+              bisa = false;
+            }
           }
         }
         if(bisa){
@@ -130,7 +132,7 @@ class _ProgramListPageState extends State<ProgramListPage> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => ProgramDetailPage(idprogram:snapshot.data![index]["id"])),
+                                MaterialPageRoute(builder: (context) => ProgramBerjalan(idprogram:snapshot.data![index]["id"])),
                               );
                             },
                           ),
@@ -198,15 +200,59 @@ class ProgramDetailPage extends StatelessWidget {
       return [];
     }
   }
-
   @override
   Widget build(BuildContext context) {
     void beliprogram() async {
-      DocumentSnapshot snapshot = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
-      List<Map<String, dynamic>> data = [];
-      data.add(snapshot.data() as Map<String, dynamic>);
-      if(data[0]["saldo"] >= hargaprogram){
-        print("bisa ");
+      DocumentSnapshot snapshotuser = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
+      List<Map<String, dynamic>> datauser = [];
+      datauser.add(snapshotuser.data() as Map<String, dynamic>);
+      if(datauser[0]["saldo"] >= hargaprogram){
+        DocumentSnapshot snapshot = await _firestore.collection('programdokter').doc(idprogram).get();
+        List<Map<String, dynamic>> data = [];
+        data.add(snapshot.data() as Map<String, dynamic>);
+        List<Map<String,dynamic>> datareport = [];
+        for(var hokya = 0;hokya<7;hokya++){
+          List<Map<String,dynamic>> isimakanan = [];
+          List<Map<String,dynamic>> isiolahraga = [];
+          for(var ambil in data[0]["listmakanan"][hokya].split(",")){
+            isimakanan.add({
+              "nama":ambil,
+              "done":false
+            });
+          }
+          for(var ambil in data[0]["listolahraga"][hokya].split(",")){
+            isiolahraga.add({
+              "nama":ambil,
+              "done":false
+            });
+          }
+          datareport.add({
+            'untuk_tanggal':DateTime.now().add(Duration(days: hokya)),
+            'isi_makanan':isimakanan,
+            'isi_olahraga':isiolahraga
+          });
+        }
+        var datasimpan = {
+          'id':idprogram,
+          'nama':data[0]["nama"],
+          'deskripsi':data[0]["deskripsi"],
+          'harga':data[0]["harga"],
+          'owner':data[0]["owner"],
+          'report':datareport,
+          'tanggal_beli':DateTime.now(),
+          'tanggal_selesai':DateTime.now().add(Duration(days: 8)),
+        };
+        if(datauser[0]["list_program"] == null){
+          await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).update({
+            'list_program': [datasimpan],
+          });
+        }else{
+          datauser[0]["list_program"].add(datasimpan);
+          await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).update({
+            'list_program': datauser[0]["list_program"],
+          });
+        }
+        Navigator.pop(context);
       }else{
         print("uang tidak cukup");
       }
@@ -231,17 +277,6 @@ class ProgramDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Bagian gambar di atas
-                  Center(
-                    child: ClipOval(
-                      child: Image.network(
-                        'https://res.cloudinary.com/dk0z4ums3/image/upload/v1707809538/setting/1707809536.png',
-                        width: 200,
-                        height: 200,
-                        fit: BoxFit.cover, // Memastikan semua gambar terlihat
-                      ),
-                    ),
-                  ),
-
                   // Bagian informasi di bawah gambar
                   Expanded(
                     flex: 3,
@@ -271,7 +306,7 @@ class ProgramDetailPage extends StatelessWidget {
                               Icon(Icons.calendar_today, size: 20, color: Colors.grey),
                               SizedBox(width: 8),
                               Text(
-                                'Duration: '+snapshot.data![0]["durasi"]+" Hari",
+                                'Duration: '+snapshot.data![0]["durasi"].toString()+" Hari",
                                 style: TextStyle(fontSize: 14),
                               ),
                             ],
@@ -334,14 +369,14 @@ class ProgramDetailPage extends StatelessWidget {
   }
 }
 class ProgramBerjalan extends StatefulWidget {
-  ProgramBerjalan({super.key});
+  String idprogram = "";
+  ProgramBerjalan({required this.idprogram});
 
   @override
   State<ProgramBerjalan> createState() => _ProgramBerjalanState();
 }
 
 class _ProgramBerjalanState extends State<ProgramBerjalan> {
-  final String idprogram = "YyYsvl9bOB7pFzmC3JOb";
   List<Map<String, dynamic>> _olahragalist = [{'nama':'lari','done':true}];
   List<Map<String, dynamic>> _makananlist =[{'nama':'cakue','done':false}];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -354,7 +389,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
       List<Map<String, dynamic>> data = [];
       data.add(snapshot.data() as Map<String, dynamic>);
       for(var ambil1 in data[0]["list_program"]){
-        if(ambil1["id"] == idprogram){
+        if(ambil1["id"] == widget.idprogram){
           for(var ambil2 in ambil1["report"]){
             DateTime firebaseDate = ambil2["untuk_tanggal"].toDate();
             DateTime now = DateTime.now();
@@ -381,7 +416,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
       List<Map<String, dynamic>> data = [];
       data.add(snapshot.data() as Map<String, dynamic>);
       for(var ambil1 in data[0]["list_program"]){
-        if(ambil1["id"] == idprogram){
+        if(ambil1["id"] == widget.idprogram){
           for(var ambil2 in ambil1["report"]){
             DateTime firebaseDate = ambil2["untuk_tanggal"].toDate();
             DateTime now = DateTime.now();
@@ -419,7 +454,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
       List<Map<String, dynamic>> data = [];
       data.add(snapshot.data() as Map<String, dynamic>);
       for(var ambil1 in data[0]["list_program"]){
-        if(ambil1["id"] == idprogram){
+        if(ambil1["id"] == widget.idprogram){
           for(var ambil2 in ambil1["report"]){
             DateTime firebaseDate = ambil2["untuk_tanggal"].toDate();
             DateTime now = DateTime.now();
