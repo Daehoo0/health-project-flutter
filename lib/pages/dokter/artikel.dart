@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:health_project_flutter/pages/dokter/addartikel.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -61,7 +62,13 @@ class ArtikelDokterPage extends StatelessWidget {
                     height: 100,
                   ),
                   title: Text(snapshot.data![index]['judul'] ?? 'No title'),
-                  subtitle: Text(snapshot.data![index]['deskripsi'] ?? 'No details'),
+                  subtitle: Text(
+                    (snapshot.data![index]['deskripsi'] ?? 'No details')
+                        .split('.')
+                        .first, // Ambil deskripsi hingga titik pertama
+                    maxLines: 2, // Batas maksimal dua baris
+                    overflow: TextOverflow.ellipsis, // Tambahkan elipsis jika teks terlalu panjang
+                  ),
                   onTap: () async {
                     if (snapshot.data![index]['source'] == "personal") {
                       Navigator.push(
@@ -171,19 +178,6 @@ class DetailArtikelDokterPage extends StatelessWidget {
           );
         }
       },
-    );
-  }
-}
-
-class TambahArtikelPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tambah Artikel'),
-        backgroundColor: Colors.teal,
-      ),
-      body: Center(child: Text('Halaman Tambah Artikel')), // Placeholder untuk halaman tambah artikel
     );
   }
 }

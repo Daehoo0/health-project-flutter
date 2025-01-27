@@ -22,6 +22,7 @@ class ArticleListPage extends StatelessWidget {
       return [];
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
@@ -45,7 +46,13 @@ class ArticleListPage extends StatelessWidget {
                       height: 100,
                     ),
                     title: Text(snapshot.data![index]['judul'] ?? 'No title'),
-                    subtitle: Text(snapshot.data![index]['deskripsi'] ?? 'No details'),
+                  subtitle: Text(
+                    (snapshot.data![index]['deskripsi'] ?? 'No details')
+                        .split('.')
+                        .first, // Ambil deskripsi hingga titik pertama
+                    maxLines: 2, // Batas maksimal dua baris
+                    overflow: TextOverflow.ellipsis, // Tambahkan elipsis jika teks terlalu panjang
+                  ),
                   onTap: () async {
                     if (snapshot.data![index]['source'] == "personal") {
                       Navigator.push(
@@ -102,7 +109,7 @@ class PersonalArticleDetailPage extends StatelessWidget {
             return Center(child: Text('No data available'));
           } else {
             return SafeArea(
-              child: Column(
+              child: ListView(
                 children: [
                   // Header Section
                   Container(
@@ -120,7 +127,6 @@ class PersonalArticleDetailPage extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   // Article Title
                   Padding(
                     padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -134,20 +140,6 @@ class PersonalArticleDetailPage extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // Article Date
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      "By Arthur C. Brooks · Jan 5, 2022",
-                      style: TextStyle(
-                        color: Color(0xFF637588),
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ),
-
                   // Image Section
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 16),
@@ -155,17 +147,16 @@ class PersonalArticleDetailPage extends StatelessWidget {
                     height: 200,
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(snapshot.data![0]['gambar_url']),
+                        image: NetworkImage(snapshot.data![0]['thumbnail_url'] ?? 'https://via.placeholder.com/200'),
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
-
                   // Article Content
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      snapshot.data![0]['isi'],
+                      snapshot.data![0]['deskripsi'] ?? 'No content available',
                       style: TextStyle(
                         color: Color(0xFF111418),
                         fontSize: 16,

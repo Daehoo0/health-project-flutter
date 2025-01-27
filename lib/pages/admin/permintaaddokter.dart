@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -36,8 +38,8 @@ class _PermintaanPageState extends State<PermintaanPage> {
             return GridView.builder(
               padding: EdgeInsets.all(8),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(), // Menyesuaikan jumlah kolom berdasarkan lebar layar
-                childAspectRatio: 3 / 4,  // Menyesuaikan tinggi card dengan rasio lebar dan tinggi
+                crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(),
+                childAspectRatio: 3 / 4,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -48,6 +50,16 @@ class _PermintaanPageState extends State<PermintaanPage> {
                 final profile = data.containsKey('profile') ? data['profile'] : '';
                 final name = data.containsKey('name') ? data['name'] : 'Nama tidak tersedia';
                 final specialization = data.containsKey('specialization') ? data['specialization'] : 'Spesialisasi tidak tersedia';
+
+                // Decode base64 string to Uint8List
+                Uint8List? imageBytes;
+                if (profile.isNotEmpty) {
+                  try {
+                    imageBytes = base64Decode(profile);
+                  } catch (e) {
+                    imageBytes = null; // Jika decoding gagal
+                  }
+                }
 
                 return Card(
                   elevation: 4,
@@ -61,10 +73,10 @@ class _PermintaanPageState extends State<PermintaanPage> {
                         padding: const EdgeInsets.all(8.0),
                         child: CircleAvatar(
                           radius: 40,
-                          backgroundImage: profile.isEmpty
-                              ? null
-                              : NetworkImage(profile),
-                          child: profile.isEmpty
+                          backgroundImage: imageBytes != null
+                              ? MemoryImage(imageBytes)
+                              : null,
+                          child: imageBytes == null
                               ? Icon(Icons.person, size: 40)
                               : null,
                         ),

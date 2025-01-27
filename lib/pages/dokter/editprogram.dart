@@ -3,29 +3,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_project_flutter/AuthProvider.dart';
-import 'package:health_project_flutter/main.dart';
 
-class TambahProgramPage extends StatelessWidget {
-  final TextEditingController _namaController = TextEditingController();
-  final TextEditingController _deskripsiController = TextEditingController();
-  final TextEditingController _hargaController = TextEditingController();
+class EditProgramPage extends StatelessWidget {
+  final DocumentSnapshot program;
+
+  EditProgramPage({required this.program});
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
-    // List untuk menyimpan controller input per hari
+    final TextEditingController _namaController =
+    TextEditingController(text: program['nama']);
+    final TextEditingController _deskripsiController =
+    TextEditingController(text: program['deskripsi']);
+    final TextEditingController _hargaController =
+    TextEditingController(text: program['harga']);
     List<TextEditingController> makananControllers = List.generate(
       7,
-          (index) => TextEditingController(),
+          (index) => TextEditingController(
+          text: program['listmakanan'][index] ?? ''),
     );
     List<TextEditingController> olahragaControllers = List.generate(
       7,
-          (index) => TextEditingController(),
+          (index) => TextEditingController(
+          text: program['listolahraga'][index] ?? ''),
     );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tambah Program'),
+        title: Text('Edit Program'),
         backgroundColor: Colors.teal,
       ),
       body: SingleChildScrollView(
@@ -60,7 +67,9 @@ class TambahProgramPage extends StatelessWidget {
                 prefixIcon: Icon(Icons.price_change),
               ),
               keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly,
+              ],
             ),
             SizedBox(height: 16),
             Text(
@@ -105,28 +114,31 @@ class TambahProgramPage extends StatelessWidget {
                 String deskripsi = _deskripsiController.text;
                 String harga = _hargaController.text;
 
-                if (nama.isNotEmpty && deskripsi.isNotEmpty && harga.isNotEmpty) {
-                  // Menyiapkan data makanan dan olahraga ke dalam bentuk list
-                  List<String> listMakanan = makananControllers.map((controller) => controller.text).toList();
-                  List<String> listOlahraga = olahragaControllers.map((controller) => controller.text).toList();
+                if (nama.isNotEmpty &&
+                    deskripsi.isNotEmpty &&
+                    harga.isNotEmpty) {
+                  // Menyiapkan data makanan dan olahraga
+                  List<String> listMakanan = makananControllers
+                      .map((controller) => controller.text)
+                      .toList();
+                  List<String> listOlahraga = olahragaControllers
+                      .map((controller) => controller.text)
+                      .toList();
 
-                  // Menyimpan data ke Firestore
-                  _firestore.collection('programdokter').add({
+                  // Mengupdate data di Firestore
+                  _firestore.collection('programdokter').doc(program.id).update({
                     'nama': nama,
                     'deskripsi': deskripsi,
                     'harga': harga,
-                    'durasi': 7, // Durasi tetap 7 hari
-                    'owner': context.read<DataLogin>().uiduser,
-                    'created_at': FieldValue.serverTimestamp(),
                     'listmakanan': listMakanan,
                     'listolahraga': listOlahraga,
                   }).then((value) {
-                    // Kembali ke halaman sebelumnya setelah berhasil menyimpan
+                    // Kembali ke halaman sebelumnya setelah berhasil update
                     Navigator.pop(context);
                   }).catchError((error) {
-                    // Menampilkan pesan error jika gagal menyimpan
+                    // Menampilkan pesan error jika gagal update
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Gagal menyimpan data: $error')),
+                      SnackBar(content: Text('Gagal mengupdate data: $error')),
                     );
                   });
                 } else {
@@ -141,7 +153,7 @@ class TambahProgramPage extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
-                'Simpan Program',
+                'Simpan Perubahan',
                 style: TextStyle(fontSize: 18),
               ),
             ),

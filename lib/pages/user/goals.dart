@@ -21,6 +21,7 @@ class _GoalsState extends State<Goals> {
   bool _isLoading = false;
   bool _isSavingMakanan = false;
   bool _isSavingOlahraga = false;
+  int? _age;
 
   final List<String> _goals = [
     'Menurunkan Berat Badan',
@@ -46,13 +47,13 @@ class _GoalsState extends State<Goals> {
 
       // Prompt untuk Makanan
       final promptMakanan =
-          "Carikan menu makanan yang cocok dan kebutuhan kalori sesuai tujuan $_selectedGoal. Orang ini memiliki tinggi badan ${widget.userData['height']} cm dan berat badan ${widget.userData['weight']} kg";
+          "Carikan menu makanan yang cocok dan kebutuhan kalori sesuai tujuan $_selectedGoal. Orang ini memiliki tinggi badan ${widget.userData['height']} cm, berat badan ${widget.userData['weight']} kg, dan usia $_age tahun.";
 
       final responseMakanan = await client.text(promptMakanan);
 
       // Prompt untuk Olahraga
       final promptOlahraga =
-          "Carikan jenis olahraga yang cocok sesuai tujuan $_selectedGoal dan berikan jumlah set dan repetisi yang direkomendasikan. Orang ini memiliki tinggi badan ${widget.userData['height']} cm dan berat badan ${widget.userData['weight']} kg";
+          "Carikan jenis olahraga yang cocok sesuai tujuan $_selectedGoal dan berikan jumlah set dan repetisi yang direkomendasikan. Orang ini memiliki tinggi badan ${widget.userData['height']} cm, berat badan ${widget.userData['weight']} kg, dan usia $_age tahun.";
 
       final responseOlahraga = await client.text(promptOlahraga);
 
@@ -155,6 +156,19 @@ class _GoalsState extends State<Goals> {
                     });
                   },
                 ),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Masukkan Usia (tahun)',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  setState(() {
+                    _age = int.tryParse(value);
+                  });
+                },
               ),
               const SizedBox(height: 20),
               ElevatedButton(
