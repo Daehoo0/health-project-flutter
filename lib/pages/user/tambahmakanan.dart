@@ -145,7 +145,7 @@ class _ManualInputFoodState extends State<ManualInputFood> {
     final response = await client.text(
         "apakah "+_calorieController.text+" merupakan makanan?jawab dengan iya atau tidak saja"
     );
-    if(response!.content!.parts![0].text!.toLowerCase().contains("tidak")){
+    if(response!.content!.parts![0].text!.toLowerCase() == "tidak"){
       isLoading.value = false;
       print("bukan makanan");
       return -1;
