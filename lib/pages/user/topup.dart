@@ -76,7 +76,7 @@ class _TopUpPageState extends State<TopUpPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Top Up'),
+        title: Text('Masukkan jumlah saldo anda'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

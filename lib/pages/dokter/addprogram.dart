@@ -8,18 +8,27 @@ import 'package:health_project_flutter/main.dart';
 class TambahProgramPage extends StatelessWidget {
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
-  final TextEditingController _durasiController = TextEditingController();
   final TextEditingController _hargaController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
+    // List untuk menyimpan controller input per hari
+    List<TextEditingController> makananControllers = List.generate(
+      7,
+          (index) => TextEditingController(),
+    );
+    List<TextEditingController> olahragaControllers = List.generate(
+      7,
+          (index) => TextEditingController(),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Tambah Program'),
         backgroundColor: Colors.teal,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -44,16 +53,6 @@ class TambahProgramPage extends StatelessWidget {
             ),
             SizedBox(height: 16),
             TextField(
-              controller: _durasiController,
-              decoration: InputDecoration(
-                labelText: 'Durasi Program (hari)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.timer),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 16),
-            TextField(
               controller: _hargaController,
               decoration: InputDecoration(
                 labelText: 'Harga Program',
@@ -61,27 +60,66 @@ class TambahProgramPage extends StatelessWidget {
                 prefixIcon: Icon(Icons.price_change),
               ),
               keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ],
+              inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
             ),
             SizedBox(height: 16),
+            Text(
+              'Detail Program untuk 7 Hari',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            ...List.generate(7, (index) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hari ${index + 1}',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: makananControllers[index],
+                    decoration: InputDecoration(
+                      labelText: 'Menu Makanan',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.fastfood),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: olahragaControllers[index],
+                    decoration: InputDecoration(
+                      labelText: 'Menu Olahraga',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.fitness_center),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                ],
+              );
+            }),
             ElevatedButton(
               onPressed: () {
-                // Logika untuk menyimpan program
+                // Validasi input
                 String nama = _namaController.text;
                 String deskripsi = _deskripsiController.text;
-                String durasi = _durasiController.text;
                 String harga = _hargaController.text;
-                if (nama.isNotEmpty && deskripsi.isNotEmpty && durasi.isNotEmpty) {
+
+                if (nama.isNotEmpty && deskripsi.isNotEmpty && harga.isNotEmpty) {
+                  // Menyiapkan data makanan dan olahraga ke dalam bentuk list
+                  List<String> listMakanan = makananControllers.map((controller) => controller.text).toList();
+                  List<String> listOlahraga = olahragaControllers.map((controller) => controller.text).toList();
+
                   // Menyimpan data ke Firestore
                   _firestore.collection('programdokter').add({
                     'nama': nama,
                     'deskripsi': deskripsi,
-                    'durasi': durasi,
+                    'harga': harga,
+                    'durasi': 7, // Durasi tetap 7 hari
+                    'owner': context.read<DataLogin>().uiduser,
                     'created_at': FieldValue.serverTimestamp(),
-                    'owner':context.read<DataLogin>().uiduser,
-                    'harga':harga,
+                    'listmakanan': listMakanan,
+                    'listolahraga': listOlahraga,
                   }).then((value) {
                     // Kembali ke halaman sebelumnya setelah berhasil menyimpan
                     Navigator.pop(context);

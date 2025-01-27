@@ -9,6 +9,7 @@ class TambahArtikelPage extends StatefulWidget {
 class _TambahArtikelPageState extends State<TambahArtikelPage> {
   final TextEditingController _judulController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
+  final TextEditingController _thumbnailUrlController = TextEditingController(); // Controller untuk Thumbnail URL
 
   // Referensi ke koleksi Firestore "artikel"
   final CollectionReference artikelCollection =
@@ -49,19 +50,35 @@ class _TambahArtikelPageState extends State<TambahArtikelPage> {
             ),
             SizedBox(height: 16),
 
+            // Input untuk Thumbnail URL
+            TextField(
+              controller: _thumbnailUrlController,
+              decoration: InputDecoration(
+                labelText: 'Thumbnail URL',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.link),
+              ),
+            ),
+            SizedBox(height: 16),
+
             // Tombol untuk menyimpan artikel ke Firestore
             ElevatedButton(
               onPressed: () async {
                 String judul = _judulController.text;
                 String deskripsi = _deskripsiController.text;
+                String thumbnailUrl = _thumbnailUrlController.text;
 
                 // Validasi input
-                if (judul.isNotEmpty && deskripsi.isNotEmpty) {
+                if (judul.isNotEmpty &&
+                    deskripsi.isNotEmpty &&
+                    thumbnailUrl.isNotEmpty) {
                   try {
                     // Menambahkan artikel ke Firestore
                     await artikelCollection.add({
                       'judul': judul,
                       'deskripsi': deskripsi,
+                      'thumbnail_url': thumbnailUrl, // Tambahkan Thumbnail URL
+                      'source': 'personal',
                       'created_at': FieldValue.serverTimestamp(),
                     });
 
