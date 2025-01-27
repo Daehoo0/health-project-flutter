@@ -4,14 +4,11 @@ import 'package:health_project_flutter/pages/dokter/chat.dart';
 import 'package:health_project_flutter/pages/dokter/profile.dart';
 import 'package:health_project_flutter/pages/dokter/program.dart';
 import 'package:health_project_flutter/pages/login.dart';
-import 'package:provider/provider.dart';
-
-import '../../AuthProvider.dart';
 
 class HomeDokter extends StatefulWidget {
   final Map<String, dynamic> userData;
 
-  HomeDokter({required this.userData});
+  const HomeDokter({Key? key, required this.userData}) : super(key: key);
 
   @override
   _HomeDokterState createState() => _HomeDokterState();
@@ -19,6 +16,23 @@ class HomeDokter extends StatefulWidget {
 
 class _HomeDokterState extends State<HomeDokter> {
   int _selectedIndex = 0;
+
+  /// Fungsi untuk memperbarui data pengguna di halaman profil
+  void _updateUserData(Map<String, dynamic> updatedData) {
+    setState(() {
+      widget.userData.addAll(updatedData);
+    });
+  }
+
+  // Getter untuk daftar halaman
+  List<Widget> get menuPages => [
+    ArtikelDokterPage(),
+    ChatPage(),
+    ProgramPage(),
+    ProfilePage(
+      updateUserData: _updateUserData,
+    ),
+  ];
 
   // Daftar menu sidebar
   final List<String> menuTitles = [
@@ -29,28 +43,20 @@ class _HomeDokterState extends State<HomeDokter> {
     'Logout',
   ];
 
-  // Daftar widget untuk setiap halaman
-  final List<Widget> menuPages = [
-    ArtikelDokterPage(),
-    ChatPage(),
-    ProgramPage(),
-    ProfilePage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Row(
         children: [
-          // Sidebar dengan desain lebih elegan
+          // Sidebar
           Container(
             width: 250,
             color: Colors.teal.shade800,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header di sidebar
+                // Header sidebar
                 Container(
                   height: 120,
                   color: Colors.teal.shade600,
