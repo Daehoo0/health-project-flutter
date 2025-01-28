@@ -9,105 +9,96 @@ import 'package:health_project_flutter/AuthProvider.dart';
 class AddFoodPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Kotak pertama dengan GestureDetector
-          GestureDetector(
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ScanImage(), // Anda bisa memberikan data dummy untuk admin
-                ),
-              );
-              // Tambahkan aksi lain di sini
-            },
-            child: Container(
-              margin: EdgeInsets.symmetric(vertical: 10.0),
-              padding: EdgeInsets.all(16.0),
-              width: 200.0,
-              height: 200.0,
-              decoration: BoxDecoration(
-                color: Colors.blueAccent,
-                borderRadius: BorderRadius.circular(10.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4.0,
-                    offset: Offset(2, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.image_search,
-                    size: 48.0,
-                    color: Colors.white,
-                  ),
-                  SizedBox(height: 16.0),
-                  Text(
-                    'Scan Gambar',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => ScanImage()),
+                );
+              },
+              child: Container(
+                margin: EdgeInsets.all(10.0),
+                height: 160.0,
+                decoration: BoxDecoration(
+                  color: Colors.teal,
+                  borderRadius: BorderRadius.circular(15.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6.0,
+                      offset: Offset(0, 3),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.image_search,
+                      size: 48.0,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 12.0),
+                    Text(
+                      'Scan Gambar',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          // Kotak kedua dengan GestureDetector
-          GestureDetector(
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ManualInputFood(), // Anda bisa memberikan data dummy untuk admin
-                ),
-              );
-              // Tambahkan aksi lain di sini
-            },
-            child: Container(
-              margin: EdgeInsets.symmetric(vertical: 10.0),
-              padding: EdgeInsets.all(16.0),
-              width: 200.0,
-              height: 200.0,
-              decoration: BoxDecoration(
-                color: Colors.greenAccent,
-                borderRadius: BorderRadius.circular(10.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4.0,
-                    offset: Offset(2, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.text_fields,
-                    size: 48.0,
-                    color: Colors.white,
-                  ),
-                  SizedBox(height: 16.0),
-                  Text(
-                    'Input Manual',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => ManualInputFood()),
+                );
+              },
+              child: Container(
+                margin: EdgeInsets.all(10.0),
+                height: 160.0,
+                decoration: BoxDecoration(
+                  color: Colors.teal,
+                  borderRadius: BorderRadius.circular(15.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6.0,
+                      offset: Offset(0, 3),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.text_fields,
+                      size: 48.0,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 12.0),
+                    Text(
+                      'Input Manual',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -125,6 +116,7 @@ class ScanImage extends StatelessWidget {
     return const Placeholder();
   }
 }
+
 class ManualInputFood extends StatefulWidget {
   const ManualInputFood({super.key});
 
@@ -138,9 +130,10 @@ class _ManualInputFoodState extends State<ManualInputFood> {
   final ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   int jumlahkalori = -1;
-  String selectedUnit = 'Gram'; // Default dropdown value
+  String selectedUnit = 'Gram';
   final List<String> foodUnits = ['Tangkai','Sisir (contoh: pisang)','Pack','Sachet','Box','Bungkus','Kaleng','Mangkok','Loyang','Porsi','Buah','Lembar','Potong','Iris','Butir','Batang','Mililiter (ml)','Liter (L)','Sendok Teh (sdt)','Sendok Makan (sdm)','Gelas','Gram','Kilogram'];
   final Gemini client = Gemini.instance;
+
   Future<int> _updateCalorieText() async {
     final response = await client.text(
         "apakah "+_calorieController.text+" merupakan makanan?jawab dengan iya atau tidak saja"
@@ -163,68 +156,89 @@ class _ManualInputFoodState extends State<ManualInputFood> {
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
+        title: Text('Input Manual Makanan'),
         centerTitle: true,
+        backgroundColor: Colors.teal,
+        elevation: 0,
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.all(20.0),
           child: ValueListenableBuilder<bool>(
             valueListenable: isLoading,
             builder: (context, value, child) {
               return value
-                  ? Column(
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 10),
-                  Text("Loading"),
-                ],
+                  ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 100),
+                    CircularProgressIndicator(color: Colors.teal),
+                    SizedBox(height: 20),
+                    Text("Menghitung kalori...",
+                        style: TextStyle(
+                            color: Colors.teal,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500
+                        )),
+                  ],
+                ),
               )
                   : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'Informasi Makanan',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _calorieController,
+                    decoration: InputDecoration(
+                      labelText: 'Nama Makanan',
+                      hintText: 'Contoh: Nasi Goreng',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      prefixIcon: Icon(Icons.fastfood),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                  ),
+                  SizedBox(height: 20),
                   Row(
                     children: [
-                      // Field "Masukkan Makanan"
-                      Expanded(
-                        flex: 4,
-                        child: TextField(
-                          controller: _calorieController,
-                          keyboardType: TextInputType.text,
-                          decoration: InputDecoration(
-                            labelText: 'Masukkan Makanan',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      // Field "Jumlah"
                       Expanded(
                         flex: 2,
                         child: TextField(
                           controller: _quantityController,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                           decoration: InputDecoration(
                             labelText: 'Jumlah',
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            prefixIcon: Icon(Icons.scale),
+                            filled: true,
+                            fillColor: Colors.grey[50],
                           ),
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
                         ),
                       ),
                       SizedBox(width: 10),
-                      // Dropdown "Satuan"
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
@@ -232,7 +246,9 @@ class _ManualInputFoodState extends State<ManualInputFood> {
                           items: foodUnits.map((String unit) {
                             return DropdownMenuItem<String>(
                               value: unit,
-                              child: Text(unit),
+                              child: Text(unit,
+                                style: TextStyle(fontSize: 14),
+                              ),
                             );
                           }).toList(),
                           onChanged: (String? newValue) {
@@ -242,49 +258,84 @@ class _ManualInputFoodState extends State<ManualInputFood> {
                           },
                           decoration: InputDecoration(
                             labelText: 'Satuan',
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            prefixIcon: Icon(Icons.straighten),
+                            filled: true,
+                            fillColor: Colors.grey[50],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
-                  Text(
-                    "Kalori : " + (jumlahkalori != -1 ? jumlahkalori.toString() : "Belum Diketahui"),
-                    style: TextStyle(fontSize: 18),
+                  SizedBox(height: 30),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.local_fire_department,
+                            color: Colors.teal, size: 24),
+                        SizedBox(width: 10),
+                        Text(
+                          "Kalori: " + (jumlahkalori != -1
+                              ? "$jumlahkalori kkal"
+                              : "Belum Diketahui"),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 20),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    child: ElevatedButton(
-                      onPressed: ()async {
-                        String calorie = _calorieController.text.trim();
-                        String quantity = _quantityController.text.trim();
-                        if (calorie.isEmpty || quantity.isEmpty) {
+                  ElevatedButton(
+                    onPressed: () async {
+                      String calorie = _calorieController.text.trim();
+                      String quantity = _quantityController.text.trim();
+                      if (calorie.isEmpty || quantity.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Semua input harus terisi!'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      } else {
+                        isLoading.value = true;
+                        var hasil = await _updateCalorieText();
+                        if(hasil == -1){
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text('Semua input harus terisi!'),
-                              duration: Duration(seconds: 2),
+                              content: Text("Harap Masukkan Nama Makanan"),
+                              backgroundColor: Colors.red,
                             ),
                           );
                         } else {
-                          isLoading.value = true;
-                          var hasil = await _updateCalorieText();
-                          if(hasil == -1){
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Harap Masukkan Nama Makanan"),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          }else{
-                            setState(() {
-                              jumlahkalori = hasil;
-                            });
-                          }
+                          setState(() {
+                            jumlahkalori = hasil;
+                          });
                         }
-                      },
-                      child: Text('Dapatkan Perkiraan Kalori'),
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      padding: EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      minimumSize: Size(double.infinity, 50),
+                    ),
+                    child: Text(
+                      'Dapatkan Perkiraan Kalori',
+                      style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ],
@@ -293,36 +344,57 @@ class _ManualInputFoodState extends State<ManualInputFood> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.9,
-          child: ElevatedButton(
-            onPressed: jumlahkalori == -1 ? null : () {
-              _firestore.collection('makananuser').add({
-                'nama': _calorieController.text,
-                'satuan': _quantityController.text+" "+selectedUnit,
-                'kalori': jumlahkalori,
-                'owner': context.read<DataLogin>().uiduser,
-                'created_at': FieldValue.serverTimestamp(),
-              }).then((value) {
-                // Kembali ke halaman sebelumnya setelah berhasil menyimpan
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Berhasil Menambahkan Makanan')),
-                );
-              }).catchError((error) {
-                // Menampilkan pesan error jika gagal menyimpan
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Gagal menyimpan data: $error')),
-                );
-              });
-            },
-            child: Text('Tambahkan Makanan'),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: ElevatedButton(
+          onPressed: jumlahkalori == -1 ? null : () {
+            _firestore.collection('makananuser').add({
+              'nama': _calorieController.text,
+              'satuan': _quantityController.text+" "+selectedUnit,
+              'kalori': jumlahkalori,
+              'owner': context.read<DataLogin>().uiduser,
+              'created_at': FieldValue.serverTimestamp(),
+            }).then((value) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Berhasil Menambahkan Makanan'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }).catchError((error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Gagal menyimpan data: $error'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.teal,
+            disabledBackgroundColor: Colors.grey[300],
+            padding: EdgeInsets.symmetric(vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: Text(
+            'Tambahkan Makanan',
+            style: TextStyle(fontSize: 16),
           ),
         ),
       ),
     );
   }
 }
-
