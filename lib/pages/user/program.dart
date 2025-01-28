@@ -418,12 +418,16 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
     }
   }
   Future<Map<String,dynamic>> getData() async {
+    var nama = "";
+    var deskripsi = "";
     try {
       DocumentSnapshot snapshot = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
       List<Map<String, dynamic>> data = [];
       data.add(snapshot.data() as Map<String, dynamic>);
       for(var ambil1 in data[0]["list_program"]){
         if(ambil1["id"] == widget.idprogram){
+          nama = ambil1["nama"];
+          deskripsi = ambil1["deskripsi"];
           for(var ambil2 in ambil1["report"]){
             DateTime firebaseDate = ambil2["untuk_tanggal"].toDate();
             DateTime now = DateTime.now();
@@ -449,7 +453,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
           }
         }
       }
-      return {'asep':'jos'};
+      return {'nama':nama,'deskripsi':deskripsi};
     } catch (e) {
       print("Error: $e");
       return {};
@@ -481,7 +485,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
           }
         }
       }
-      return {'asep':'jos'};
+      return {'nama':data[0]['nama'],'deskripsi':data[0]['deskripsi']};
     } catch (e) {
       print("Error: $e");
       return {};
@@ -502,6 +506,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(child: Text('No data available'));
           } else {
+            print(snapshot.data);
             return Scaffold(
               appBar: AppBar(
                 backgroundColor: Colors.teal,
@@ -519,8 +524,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
                   children: [
                     Center(
                       child: Text(
-                        // snapshot.data!["nama"]
-                        'jos',
+                        snapshot.data!["nama"],
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -529,8 +533,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      // 'Deskripsi: '+snapshot.data!["deskripsi"],
-                        'Deskripsi: jos',
+                      'Deskripsi: '+snapshot.data!["deskripsi"],
                       style: TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 24),
