@@ -46,10 +46,61 @@ class _ProfilePageState extends State<ProfilePage> {
     loadgambar();
   }
 
-  // Keep existing functions as they are
-  Future<void> _loadUserData() async {/* Keep existing implementation */}
-  Future<void> _loadPurchaseHistory() async {/* Keep existing implementation */}
-  Future<void> _logout() async {/* Keep existing implementation */}
+  Future<void> _loadUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          setState(() {
+            userData = userDoc.data() as Map<String, dynamic>;
+            final formatter = NumberFormat.decimalPattern('id_ID');
+            formattedBalance = formatter.format(userData['saldo']);
+          });
+        }
+      } catch (e) {
+        print("Error loading user data: $e");
+      }
+    }
+  }
+
+  Future<void> _loadPurchaseHistory() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        QuerySnapshot historySnapshot = await FirebaseFirestore.instance
+            .collection('history_beli_program')
+            .where('buy_by_pasien', isEqualTo: user.uid)
+            .get();
+
+        setState(() {
+          purchaseHistory = historySnapshot.docs.map((doc) {
+            return doc.data() as Map<String, dynamic>;
+          }).toList();
+        });
+      } catch (e) {
+        print("Error loading purchase history: $e");
+      }
+    }
+  }
+
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginScreen(),
+        ),
+      );
+    } catch (e) {
+      print("Error logging out: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
