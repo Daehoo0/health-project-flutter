@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import 'dart:typed_data';
-=======
 import 'dart:convert';
 import 'dart:typed_data'; // Untuk MemoryImage dan Uint8List
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,24 +23,17 @@ class UpdateProfilePage extends StatefulWidget {
 
 class _UpdateProfilePageState extends State<UpdateProfilePage> {
   Uint8List? _webImageBytes;
-<<<<<<< HEAD
-=======
   final ImagePicker _picker = ImagePicker();
   String _base64String = "";
   Uint8List? _imageBytes;
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _genderController;
   late TextEditingController _tinggiController;
   late TextEditingController _beratController;
+
   final _formKey = GlobalKey<FormState>();
   File? _profileImage;
-<<<<<<< HEAD
-  final ImagePicker _picker = ImagePicker();
-  bool _isLoading = false;
-
-=======
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   void loadgambar() async{
     DocumentSnapshot snapshot = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
@@ -52,7 +41,6 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     data.add(snapshot.data() as Map<String, dynamic>);
     _base64String = data[0]["profile"];
   }
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
   @override
   void initState() {
     super.initState();
@@ -64,35 +52,17 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     loadgambar();
   }
 
-  // [Previous functions remain unchanged]
   Future<void> _pickImage() async {
     try {
-<<<<<<< HEAD
-      final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile = await picker.pickImage(
-          source: ImageSource.gallery,
-          maxWidth: 1024,
-          maxHeight: 1024,
-          imageQuality: 80
-      );
-
-      if (pickedFile != null) {
-        if (kIsWeb) {
-          final bytes = await pickedFile.readAsBytes();
-=======
       if (kIsWeb) {
         // Handle image picking for web
         final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
         if (image != null) {
           final bytes = await image.readAsBytes();
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
           setState(() {
             _imageBytes = bytes;
             _base64String = base64Encode(bytes);
           });
-<<<<<<< HEAD
-        } else {
-=======
         }
       } else {
         // Handle image picking for mobile
@@ -100,7 +70,6 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
         if (image != null) {
           final File file = File(image.path);
           final bytes = await file.readAsBytes();
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
           setState(() {
             _imageBytes = bytes;
             _base64String = base64Encode(bytes);
@@ -130,30 +99,9 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
 
   Future<String?> _uploadImage() async {
     try {
-<<<<<<< HEAD
-      String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      Reference ref = FirebaseStorage.instance.ref().child('profile').child(fileName);
-
-      if (kIsWeb) {
-        if (_webImageBytes == null) return widget.userData['profile'];
-
-        UploadTask uploadTask = ref.putData(_webImageBytes!);
-        TaskSnapshot snapshot = await uploadTask;
-        String downloadURL = await snapshot.ref.getDownloadURL();
-        return 'profile/$fileName';
-      } else {
-        if (_profileImage == null) return widget.userData['profile'];
-
-        UploadTask uploadTask = ref.putFile(_profileImage!);
-        TaskSnapshot snapshot = await uploadTask;
-        String downloadURL = await snapshot.ref.getDownloadURL();
-        return 'profile/$fileName';
-      }
-=======
       await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).update({
         'profile': _base64String,
       });
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
     } catch (e) {
       _showErrorSnackBar('Error uploading image: $e');
       return null;
@@ -162,28 +110,9 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
       try {
         String? imageUrl;
-<<<<<<< HEAD
-
-        if (_profileImage != null || _webImageBytes != null) {
-          imageUrl = await _uploadImage();
-          if (imageUrl == null) {
-            setState(() {
-              _isLoading = false;
-            });
-            return;
-          }
-        } else {
-          imageUrl = widget.userData['profile'] ?? '';
-        }
-=======
         await _uploadImage();
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
 
         final updatedData = {
           'name': _nameController.text.trim(),
@@ -197,134 +126,25 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
         if (user != null) {
           await FirebaseFirestore.instance.collection('users').doc(user.uid).update(updatedData);
           widget.updateUserData(updatedData);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Profil berhasil diperbarui!'),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profil berhasil diperbarui!'), backgroundColor: Colors.green));
           Navigator.pop(context);
         }
       } catch (e) {
         _showErrorSnackBar('Error saving profile: $e');
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.error_outline, color: Colors.white),
-            SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    bool isNumber = false,
-    bool isEmail = false,
-    String? Function(String?)? customValidator,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: isNumber
-            ? TextInputType.number
-            : (isEmail ? TextInputType.emailAddress : TextInputType.text),
-        style: TextStyle(fontSize: 16),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(icon, color: Colors.teal),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.teal, width: 1),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.teal, width: 2),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.red.shade300, width: 1),
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        validator: customValidator ?? (value) {
-          if (value == null || value.trim().isEmpty) {
-            return '$label tidak boleh kosong';
-          }
-          if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-            return 'Masukkan email yang valid';
-          }
-          return null;
-        },
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Edit Profil',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: Text('Edit Profil'),
         backgroundColor: Colors.teal,
-<<<<<<< HEAD
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-=======
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -363,169 +183,30 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
               ),
             ],
           ),
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
         ),
       ),
-      body: Stack(
-        children: [
-          Container(
-            height: 100,
-            color: Colors.teal,
-          ),
-          SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 10,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            Stack(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.teal, width: 3),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        spreadRadius: 2,
-                                        blurRadius: 8,
-                                        offset: Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
-                                  child: CircleAvatar(
-                                    radius: 60,
-                                    backgroundColor: Colors.grey[200],
-                                    backgroundImage: _getImageProvider(),
-                                    child: _getImageProvider() == null
-                                        ? Icon(Icons.person, size: 60, color: Colors.grey[400])
-                                        : null,
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: _pickImage,
-                                    child: Container(
-                                      padding: EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.teal,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white, width: 2),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.2),
-                                            spreadRadius: 1,
-                                            blurRadius: 3,
-                                            offset: Offset(0, 1),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Icon(
-                                        Icons.camera_alt,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 30),
-                            _buildInputField(
-                              controller: _nameController,
-                              label: 'Nama Lengkap',
-                              icon: Icons.person,
-                            ),
-                            _buildInputField(
-                              controller: _emailController,
-                              label: 'Email',
-                              icon: Icons.email,
-                              isEmail: true,
-                            ),
-                            _buildInputField(
-                              controller: _genderController,
-                              label: 'Jenis Kelamin',
-                              icon: Icons.people,
-                            ),
-                            _buildInputField(
-                              controller: _tinggiController,
-                              label: 'Tinggi Badan (cm)',
-                              icon: Icons.height,
-                              isNumber: true,
-                            ),
-                            _buildInputField(
-                              controller: _beratController,
-                              label: 'Berat Badan (kg)',
-                              icon: Icons.fitness_center,
-                              isNumber: true,
-                            ),
-                            SizedBox(height: 20),
-                            Container(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _saveProfile,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.teal,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 3,
-                                ),
-                                child: _isLoading
-                                    ? CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                )
-                                    : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.save, color: Colors.white),
-                                    SizedBox(width: 10),
-                                    Text(
-                                      'Simpan Perubahan',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ),
-        ],
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, {bool isNumber = false, bool isEmail = false}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: isNumber
+          ? TextInputType.number
+          : (isEmail ? TextInputType.emailAddress : TextInputType.text),
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
       ),
-      backgroundColor: Colors.grey[100],
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return '$label tidak boleh kosong.';
+        }
+        if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+          return 'Masukkan email yang valid.';
+        }
+        return null;
+      },
     );
   }
 }

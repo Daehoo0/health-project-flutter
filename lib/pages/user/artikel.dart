@@ -28,187 +28,157 @@ class ArticleListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Artikel Kesehatan',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.teal,
         elevation: 0,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.teal.shade50, Colors.white],
+        backgroundColor: Colors.white,
+        title: Text(
+          'Articles',
+          style: TextStyle(
+            color: Color(0xFF111418),
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: getData(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(color: Colors.teal),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                    SizedBox(height: 16),
-                    Text(
-                      'Terjadi kesalahan saat memuat artikel',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              );
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.article_outlined, size: 64, color: Colors.grey[400]),
-                    SizedBox(height: 16),
-                    Text(
-                      'Belum ada artikel tersedia',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              );
-            }
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: getData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF111418)),
+              ),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 60, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text(
+                    'Error: ${snapshot.error}',
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.article_outlined, size: 60, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No articles available',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
+          }
 
-            return ListView.builder(
-              padding: EdgeInsets.all(16),
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final article = snapshot.data![index];
-                return Container(
-                  margin: EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 10,
-                        offset: Offset(0, 2),
+          return ListView.builder(
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 2,
+                margin: EdgeInsets.only(bottom: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () async {
+                    if (snapshot.data![index]['source'] == "personal") {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PersonalArticleDetailPage(
+                            idartikel: snapshot.data![index]["id"],
+                          ),
+                        ),
+                      );
+                    } else {
+                      final url = snapshot.data![index]['url_link'];
+                      if (url != null && await canLaunch(url)) {
+                        await launch(url);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Could not open the article'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                        child: Image.network(
+                          snapshot.data![index]["thumbnail_url"] ??
+                              'https://via.placeholder.com/150',
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: double.infinity,
+                              height: 200,
+                              color: Colors.grey[200],
+                              child: Icon(
+                                Icons.image_not_supported,
+                                size: 50,
+                                color: Colors.grey[400],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              snapshot.data![index]['judul'] ?? 'No title',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF111418),
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              (snapshot.data![index]['deskripsi'] ?? 'No details')
+                                  .split('.')
+                                  .first,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                height: 1.5,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () async {
-                        if (article['source'] == "personal") {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PersonalArticleDetailPage(
-                                idartikel: article["id"],
-                              ),
-                            ),
-                          );
-                        } else {
-                          final url = article['url_link'];
-                          if (url != null && await canLaunch(url)) {
-                            await launch(url);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Tidak dapat membuka artikel'),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(16),
-                            ),
-                            child: Image.network(
-                              article["thumbnail_url"] ??
-                                  'https://via.placeholder.com/150',
-                              width: double.infinity,
-                              height: 200,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  article['judul'] ?? 'No title',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.teal[800],
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  (article['deskripsi'] ?? 'No details')
-                                      .split('.')
-                                      .first,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                    height: 1.5,
-                                  ),
-                                ),
-                                SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      article['source'] == "personal"
-                                          ? Icons.article_outlined
-                                          : Icons.link,
-                                      size: 16,
-                                      color: Colors.teal,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      article['source'] == "personal"
-                                          ? 'Baca selengkapnya'
-                                          : 'Buka di browser',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.teal,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -216,9 +186,10 @@ class ArticleListPage extends StatelessWidget {
 
 class PersonalArticleDetailPage extends StatelessWidget {
   final String idartikel;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   PersonalArticleDetailPage({required this.idartikel});
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<List<Map<String, dynamic>>> getData() async {
     try {
@@ -240,161 +211,102 @@ class PersonalArticleDetailPage extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: CircularProgressIndicator(color: Colors.teal),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF111418)),
+              ),
             );
-          } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          } else if (snapshot.hasError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.red[300],
-                  ),
-<<<<<<< HEAD
+                  Icon(Icons.error_outline, size: 60, color: Colors.red),
                   SizedBox(height: 16),
                   Text(
-                    'Artikel tidak ditemukan',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-=======
-                  // Article Title
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: Text(
-                      snapshot.data![0]['judul'] ?? 'No title',
-                      style: TextStyle(
-                        color: Color(0xFF111418),
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.015,
-                      ),
-                    ),
+                    'Error: ${snapshot.error}',
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
                   ),
-                  // Image Section
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 16),
-                    width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(snapshot.data![0]['thumbnail_url'] ?? 'https://via.placeholder.com/200'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  // Article Content
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      snapshot.data![0]['deskripsi'] ?? 'No content available',
-                      style: TextStyle(
-                        color: Color(0xFF111418),
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                        height: 1.5,
-                      ),
->>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
-                    ),
+                ],
+              ),
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.article_outlined, size: 60, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'Article not found',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
               ),
             );
           }
 
-          final article = snapshot.data![0];
-
           return CustomScrollView(
             slivers: [
               SliverAppBar(
                 expandedHeight: 300,
+                floating: false,
                 pinned: true,
+                backgroundColor: Colors.white,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Image.network(
-                    article['thumbnail_url'] ?? 'https://via.placeholder.com/200',
+                    snapshot.data![0]['thumbnail_url'] ??
+                        'https://via.placeholder.com/200',
                     fit: BoxFit.cover,
-                  ),
-                ),
-                leading: Container(
-                  margin: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black26,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 50,
+                          color: Colors.grey[400],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
-                  ),
-                  transform: Matrix4.translationValues(0, -24, 0),
+                  padding: EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              article['judul'] ?? 'No title',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal[800],
-                                height: 1.4,
-                              ),
-                            ),
-                            SizedBox(height: 16),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.teal.shade50,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.article_outlined,
-                                    size: 16,
-                                    color: Colors.teal,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Artikel Kesehatan',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.teal,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 24),
-                            Text(
-                              article['deskripsi'] ?? 'No content available',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[800],
-                                height: 1.8,
-                              ),
-                            ),
-                          ],
+                      Text(
+                        snapshot.data![0]['judul'] ?? 'No title',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111418),
+                          height: 1.3,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Container(
+                        height: 4,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          color: Color(0xFF111418),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        snapshot.data![0]['deskripsi'] ?? 'No content available',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[800],
+                          height: 1.8,
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ],
