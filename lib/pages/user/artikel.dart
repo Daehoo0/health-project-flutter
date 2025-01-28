@@ -252,12 +252,51 @@ class PersonalArticleDetailPage extends StatelessWidget {
                     size: 64,
                     color: Colors.red[300],
                   ),
+<<<<<<< HEAD
                   SizedBox(height: 16),
                   Text(
                     'Artikel tidak ditemukan',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[700],
+=======
+                  // Article Title
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Text(
+                      snapshot.data![0]['judul'] ?? 'No title',
+                      style: TextStyle(
+                        color: Color(0xFF111418),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.015,
+                      ),
+                    ),
+                  ),
+                  // Image Section
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 16),
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(snapshot.data![0]['thumbnail_url'] ?? 'https://via.placeholder.com/200'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  // Article Content
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      snapshot.data![0]['deskripsi'] ?? 'No content available',
+                      style: TextStyle(
+                        color: Color(0xFF111418),
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                        height: 1.5,
+                      ),
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
                     ),
                   ),
                 ],

@@ -37,8 +37,12 @@ class _HomeUserState extends State<HomeUser> {
 
     final List<Widget> _pages = [
       AddFoodPage(),
+<<<<<<< HEAD
       CalorieCounterPage(),
       Goals(userData: widget.userData),
+=======
+      Goals(userData: widget.userData), // Melewatkan userData ke Goals
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
       ChatConsultationPage(),
       SearchDoctorPage(),
       ProgramListPage(),
@@ -49,7 +53,6 @@ class _HomeUserState extends State<HomeUser> {
 
     final List<String> _pageTitles = [
       'Tambah Makanan',
-      'Hitung Kalori',
       'Goals',
       'Konsultasi',
       'Cari Dokter',
@@ -71,6 +74,7 @@ class _HomeUserState extends State<HomeUser> {
           ),
         ),
         backgroundColor: Colors.teal,
+<<<<<<< HEAD
         actions: [
           IconButton(
             icon: Icon(Icons.notifications_outlined),
@@ -79,6 +83,31 @@ class _HomeUserState extends State<HomeUser> {
             },
           ),
           const SizedBox(width: 8),
+=======
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        selectedItemColor: Colors.teal,
+        unselectedItemColor: Colors.grey,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.fastfood), label: 'Tambah'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_tree_sharp), label: 'Goals'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Konsultasi'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Dokter'),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Program'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Top Up'),
+          BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Artikel'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
         ],
       ),
       body: Container(

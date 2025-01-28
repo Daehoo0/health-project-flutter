@@ -1,10 +1,18 @@
+<<<<<<< HEAD
 import 'dart:typed_data';
+=======
+import 'dart:convert';
+import 'dart:typed_data'; // Untuk MemoryImage dan Uint8List
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_project_flutter/AuthProvider.dart';
+import 'package:health_project_flutter/main.dart';
 import 'package:image_picker/image_picker.dart';
 
 class UpdateProfilePage extends StatefulWidget {
@@ -19,6 +27,12 @@ class UpdateProfilePage extends StatefulWidget {
 
 class _UpdateProfilePageState extends State<UpdateProfilePage> {
   Uint8List? _webImageBytes;
+<<<<<<< HEAD
+=======
+  final ImagePicker _picker = ImagePicker();
+  String _base64String = "";
+  Uint8List? _imageBytes;
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _genderController;
@@ -26,9 +40,19 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
   late TextEditingController _beratController;
   final _formKey = GlobalKey<FormState>();
   File? _profileImage;
+<<<<<<< HEAD
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
 
+=======
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  void loadgambar() async{
+    DocumentSnapshot snapshot = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
+    List<Map<String, dynamic>> data = [];
+    data.add(snapshot.data() as Map<String, dynamic>);
+    _base64String = data[0]["profile"];
+  }
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
   @override
   void initState() {
     super.initState();
@@ -37,11 +61,13 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     _genderController = TextEditingController(text: widget.userData['gender'] ?? '');
     _tinggiController = TextEditingController(text: widget.userData['height']?.toString() ?? '');
     _beratController = TextEditingController(text: widget.userData['weight']?.toString() ?? '');
+    loadgambar();
   }
 
   // [Previous functions remain unchanged]
   Future<void> _pickImage() async {
     try {
+<<<<<<< HEAD
       final ImagePicker picker = ImagePicker();
       final XFile? pickedFile = await picker.pickImage(
           source: ImageSource.gallery,
@@ -53,17 +79,36 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
       if (pickedFile != null) {
         if (kIsWeb) {
           final bytes = await pickedFile.readAsBytes();
+=======
+      if (kIsWeb) {
+        // Handle image picking for web
+        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          final bytes = await image.readAsBytes();
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
           setState(() {
-            _webImageBytes = bytes;
+            _imageBytes = bytes;
+            _base64String = base64Encode(bytes);
           });
+<<<<<<< HEAD
         } else {
+=======
+        }
+      } else {
+        // Handle image picking for mobile
+        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          final File file = File(image.path);
+          final bytes = await file.readAsBytes();
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
           setState(() {
-            _profileImage = File(pickedFile.path);
+            _imageBytes = bytes;
+            _base64String = base64Encode(bytes);
           });
         }
       }
     } catch (e) {
-      _showErrorSnackBar('Error picking image: $e');
+      debugPrint('Error picking image: $e');
     }
   }
 
@@ -85,6 +130,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
 
   Future<String?> _uploadImage() async {
     try {
+<<<<<<< HEAD
       String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
       Reference ref = FirebaseStorage.instance.ref().child('profile').child(fileName);
 
@@ -103,6 +149,11 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
         String downloadURL = await snapshot.ref.getDownloadURL();
         return 'profile/$fileName';
       }
+=======
+      await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).update({
+        'profile': _base64String,
+      });
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
     } catch (e) {
       _showErrorSnackBar('Error uploading image: $e');
       return null;
@@ -117,6 +168,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
 
       try {
         String? imageUrl;
+<<<<<<< HEAD
 
         if (_profileImage != null || _webImageBytes != null) {
           imageUrl = await _uploadImage();
@@ -129,6 +181,9 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
         } else {
           imageUrl = widget.userData['profile'] ?? '';
         }
+=======
+        await _uploadImage();
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
 
         final updatedData = {
           'name': _nameController.text.trim(),
@@ -136,7 +191,6 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
           'gender': _genderController.text.trim(),
           'height': double.tryParse(_tinggiController.text) ?? 0.0,
           'weight': double.tryParse(_beratController.text) ?? 0.0,
-          'profile': imageUrl,
         };
 
         User? user = FirebaseAuth.instance.currentUser;
@@ -264,11 +318,52 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.teal,
+<<<<<<< HEAD
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
+=======
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundImage: _imageBytes != null ? MemoryImage(_imageBytes!) : null,
+                  child: _imageBytes == null
+                      ? const Icon(
+                    Icons.camera_alt,
+                    size: 40,
+                  )
+                      : null,
+                ),
+              ),
+              SizedBox(height: 20),
+              _buildTextField(_nameController, 'Nama'),
+              SizedBox(height: 20),
+              _buildTextField(_emailController, 'Email', isEmail: true),
+              SizedBox(height: 20),
+              _buildTextField(_genderController, 'Gender'),
+              SizedBox(height: 20),
+              _buildTextField(_tinggiController, 'Tinggi Badan (cm)', isNumber: true),
+              SizedBox(height: 20),
+              _buildTextField(_beratController, 'Berat Badan (kg)', isNumber: true),
+              SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: _saveProfile,
+                child: Text('Simpan'),
+              ),
+            ],
+          ),
+>>>>>>> c286ca1aa4a06390d113cc7ef3acd791ca387f64
         ),
       ),
       body: Stack(
