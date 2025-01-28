@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -19,7 +17,7 @@ class _UserPageState extends State<UserPage> {
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('users')
-              .where('role', isEqualTo: 'Pasien') // Filter hanya pasien
+              .where('role', isEqualTo: 'Pasien')  // Filter hanya pasien
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -36,7 +34,7 @@ class _UserPageState extends State<UserPage> {
               padding: EdgeInsets.all(8),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(), // Menyesuaikan jumlah kolom berdasarkan lebar layar
-                childAspectRatio: 3 / 4, // Rasio tinggi dan lebar card
+                childAspectRatio: 3 / 4,  // Rasio tinggi dan lebar card
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -52,16 +50,6 @@ class _UserPageState extends State<UserPage> {
                 final weight = data.containsKey('weight') ? data['weight'] : 'Berat tidak tersedia';
                 final height = data.containsKey('height') ? data['height'] : 'Tinggi tidak tersedia';
 
-                // Decode base64 string to Uint8List
-                Uint8List? imageBytes;
-                if (profile.isNotEmpty && !profile.startsWith('http')) {
-                  try {
-                    imageBytes = base64Decode(profile);
-                  } catch (e) {
-                    imageBytes = null; // Jika decoding gagal
-                  }
-                }
-
                 return Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
@@ -73,10 +61,10 @@ class _UserPageState extends State<UserPage> {
                       SizedBox(height: 5),
                       CircleAvatar(
                         radius: 40,
-                        backgroundImage: imageBytes != null
-                            ? MemoryImage(imageBytes)
-                            : (profile.startsWith('http') ? NetworkImage(profile) : null),
-                        child: (imageBytes == null && profile.isEmpty)
+                        backgroundImage: profile.isEmpty
+                            ? null
+                            : NetworkImage(profile),
+                        child: profile.isEmpty
                             ? Icon(Icons.person, size: 40)
                             : null,
                       ),
@@ -138,8 +126,7 @@ class _UserPageState extends State<UserPage> {
                                     FirebaseFirestore.instance
                                         .collection('users')
                                         .doc(user.id)
-                                        .delete()
-                                        .then((_) {
+                                        .delete().then((_) {
                                       Navigator.pop(context);
                                       setState(() {});
                                     });
