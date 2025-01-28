@@ -1,165 +1,243 @@
-import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_project_flutter/pages/dokter/updateprofile.dart';
+import 'package:health_project_flutter/pages/login.dart';
+import 'package:health_project_flutter/pages/user/updateprofile.dart';
+import 'package:image_picker/image_picker.dart';  // Add this package for image picking
+import 'dart:io';
+import 'package:intl/intl.dart';
+
+import '../../AuthProvider.dart';
 
 class ProfilePage extends StatefulWidget {
+  final Function(Map<String, dynamic>) updateUserData;
+
+  ProfilePage({required this.updateUserData});
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  Map<String, dynamic> userData = {};
+  String formattedBalance = '';
+  String _base64String = "";
+  late Uint8List imageBytes;
+  File? _profileImage; // To hold the selected image file
+  List<Map<String, dynamic>> purchaseHistory = [];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final ImagePicker _picker = ImagePicker();
 
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _specializationController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-
-  File? _profileImage; // For storing the profile image
+  Future<void> loadgambar() async{
+    print("coy");
+    DocumentSnapshot snapshot = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
+    List<Map<String, dynamic>> data = [];
+    data.add(snapshot.data() as Map<String, dynamic>);
+    _base64String = data[0]["profile"];
+    imageBytes = base64Decode(_base64String);
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadProfileData();
+    _loadUserData();
+    // _loadPurchaseHistory();
+    loadgambar();
   }
 
-  // Load profile data from Firestore
-  Future<void> _loadProfileData() async {
-    User? user = _auth.currentUser;
-
-    if (user != null) {
-      DocumentSnapshot doc =
-      await _firestore.collection('users').doc(user.uid).get();
-
-      if (doc.exists) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-        setState(() {
-          _nameController.text = data['name'] ?? '';
-          _specializationController.text = data['specialization'] ?? '';
-          _emailController.text = data['email'] ?? user.email!;
-        });
-      }
-    }
-  }
-
-  // Save profile data
-  Future<void> _saveProfileData() async {
-    User? user = _auth.currentUser;
-
+  Future<void> _loadUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        if (_emailController.text != user.email) {
-          await user.updateEmail(_emailController.text);
-          await user.sendEmailVerification();
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          setState(() {
+            userData = userDoc.data() as Map<String, dynamic>;
+            // final formatter = NumberFormat.decimalPattern('id_ID');
+            // formattedBalance = formatter.format(userData['saldo']);
+          });
         }
-
-        // Save the profile to Firestore in "doctors" collection
-        await _firestore.collection('users').doc(user.uid).update({
-          'name': _nameController.text,
-          'specialization': _specializationController.text,
-          'email': _emailController.text,
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profil berhasil diperbarui!')),
-        );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memperbarui profil: $e')),
-        );
+        print("Error loading user data: $e");
       }
     }
   }
 
-  // Function to pick profile image
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
-      _uploadProfileImage(pickedFile); // Upload to Firebase
-    }
-  }
-
-  // Upload the image to Firebase Storage
-  Future<void> _uploadProfileImage(XFile pickedFile) async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      try {
-        String fileName = '${user.uid}_profile.jpg';
-        final storageRef = FirebaseStorage.instance.ref().child('profile_images/$fileName');
-
-        await storageRef.putFile(File(pickedFile.path));
-        String downloadUrl = await storageRef.getDownloadURL();
-
-        await _firestore.collection('users').doc(user.uid).update({
-          'profile': downloadUrl,
-        });
-
-        setState(() {
-          _profileImage = File(pickedFile.path); // Update the local profile image
-        });
-      } catch (e) {
-        print("Error uploading profile image: $e");
-      }
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginScreen(),
+        ),
+      );
+    } catch (e) {
+      print("Error logging out: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Edit Profil Dokter'),
-        backgroundColor: Colors.teal,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            // Profile Image Picker
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: _profileImage != null
-                    ? FileImage(_profileImage!) // If image exists, use it
-                    : AssetImage('lib/assets/profile.jpg') as ImageProvider,
-                backgroundColor: Colors.teal[100],
+    return FutureBuilder<void>(
+        future: loadgambar(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor: Colors.teal,
+                title: Text('Profil Dokter'),
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.exit_to_app),
+                    onPressed: _logout,
+                  ),
+                ],
               ),
-            ),
-            SizedBox(height: 20),
-            // Name input
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Nama', hintText: _nameController.text),
-            ),
-            SizedBox(height: 10),
-            // Specialization input
-            TextField(
-              controller: _specializationController,
-              decoration: InputDecoration(labelText: 'Spesialisasi', hintText: _specializationController.text),
-            ),
-            SizedBox(height: 10),
-            // Email input
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email Baru', hintText: _emailController.text),
-            ),
-            SizedBox(height: 20),
-            // Save Button
-            ElevatedButton(
-              onPressed: _saveProfileData,
-              child: Text('Simpan Profil'),
-            ),
-          ],
-        ),
-      ),
+              body: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: userData.isEmpty
+                    ? Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 3,
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Avatar Profil
+                            Center(
+                              child: CircleAvatar(
+                                radius: 60,
+                                backgroundImage: MemoryImage(imageBytes),
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            // Nama Pengguna
+                            Center(
+                              child: Text(
+                                userData['name'] ?? 'N/A',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.teal,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Divider(),
+                            // Informasi Pengguna
+                            ListTile(
+                              leading: Icon(Icons.email, color: Colors.teal),
+                              title: Text('Email'),
+                              subtitle: Text(userData['email'] ?? 'N/A'),
+                            ),
+                            ListTile(
+                              leading: Icon(Icons.male, color: Colors.teal),
+                              title: Text('Spesialisasi'),
+                              subtitle: Text(userData['specialization'] ?? 'N/A'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      // Tombol Edit dan Logout
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async{
+                              var result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UpdateProfileDokterPage(
+                                    userData: userData,
+                                    updateUserData: (updatedData) {
+                                      setState(() {
+                                        userData = updatedData;
+                                      });
+                                      widget.updateUserData(updatedData);
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                              shadowColor: Colors.teal.withOpacity(0.3),
+                              elevation: 5,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, color: Colors.white),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Edit Profil',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: _logout,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                              shadowColor: Colors.red.withOpacity(0.3),
+                              elevation: 5,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.logout, color: Colors.white),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Logout',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              backgroundColor: Colors.grey[200],
+            );
+          }
+        }
     );
   }
 }

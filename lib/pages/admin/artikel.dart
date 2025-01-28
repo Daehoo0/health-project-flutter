@@ -41,8 +41,9 @@ class ArticlePage extends StatelessWidget {
             return GridView.builder(
               padding: EdgeInsets.all(8),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(), // Menyesuaikan jumlah kolom berdasarkan lebar layar
-                childAspectRatio: 3 / 4,  // Menyesuaikan tinggi card dengan rasio lebar dan tinggi
+                crossAxisCount:
+                (MediaQuery.of(context).size.width / 250).floor(),
+                childAspectRatio: 3 / 4, // Menjaga rasio card
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -58,16 +59,18 @@ class ArticlePage extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(12)),
-                        child: Image.network(
-                          data['thumbnail_url'] ?? '',
-                          height: 200,  // Menyesuaikan tinggi gambar dengan card
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Icon(Icons.broken_image, size: 100),
+                      AspectRatio(
+                        aspectRatio: 16 / 9, // Rasio untuk thumbnail
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(12)),
+                          child: Image.network(
+                            data['thumbnail_url'] ?? '',
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.broken_image, size: 50),
+                          ),
                         ),
                       ),
                       Padding(
@@ -75,7 +78,6 @@ class ArticlePage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 20),
                             Text(
                               data['judul'] ?? 'Tanpa Judul',
                               style: TextStyle(
@@ -153,11 +155,13 @@ class ArticlePage extends StatelessWidget {
                                       'Apakah Anda yakin ingin menghapus artikel ini?'),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context, false),
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
                                       child: Text('Batal'),
                                     ),
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context, true),
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
                                       child: Text('Hapus'),
                                     ),
                                   ],
@@ -177,7 +181,7 @@ class ArticlePage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(height: 5),
+                      SizedBox(height: 3),
                     ],
                   ),
                 );

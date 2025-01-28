@@ -10,10 +10,10 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
-  LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -118,18 +118,20 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    try {
-      if (email == 'admin' && password == 'admin') {
-        await Future.delayed(Duration(seconds: 1)); // Simulate network delay
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeAdmin(userData: {}),
-          ),
-        );
-        return;
-      }
+    // Periksa apakah email dan password sesuai untuk admin
+    if (email == 'admin' && password == 'admin') {
+      await Future.delayed(Duration(seconds: 1)); // Simulate network delay
 
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeAdmin(userData: {}),
+        ),
+      );
+      return;
+    }
+
+    try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -138,6 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
       String uid = userCredential.user!.uid;
       context.read<DataLogin>().setuserlogin(uid);
 
+      // Ambil data pengguna berdasarkan UID
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
 
       if (userDoc.exists) {
@@ -160,6 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } else {
           _showErrorDialog('Role tidak valid!');
         }
+        return;
       } else {
         _showErrorDialog('Akun tidak ditemukan!');
       }
@@ -174,9 +178,12 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
-    final Size screenSize = MediaQuery.of(context).size;
+    final Size screenSize = MediaQuery
+        .of(context)
+        .size;
     final bool isWeb = screenSize.width > 900;
 
     return Scaffold(
@@ -188,58 +195,58 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildWebLayout(Size screenSize) {
     return Row(
       children: [
-        // Left side - Decorative section
-        Expanded(
-          flex: 5,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.teal.shade400,
-                  Colors.teal.shade800,
-                ],
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  height: screenSize.height * 0.4,
-                  child: Lottie.asset(
-                    'lib/assets/login.json',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                SizedBox(height: 32),
-                Text(
-                  'Selamat Datang di\nHealthcare Platform',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    height: 1.3,
-                  ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  width: screenSize.width * 0.3,
-                  child: Text(
-                    'Platform kesehatan terpercaya untuk menghubungkan pasien dengan dokter profesional',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      // Left side - Decorative section
+      Expanded(
+      flex: 5,
+      child: Container(
+      decoration: BoxDecoration(
+      gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Colors.teal.shade400,
+        Colors.teal.shade800,
+      ],
+    ),
+    ),
+    child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+    Container(
+    height: screenSize.height * 0.4,
+    child: Lottie.asset(
+    'lib/assets/login.json',
+    fit: BoxFit.contain,
+    ),
+    ),
+    SizedBox(height: 32),
+    Text(
+    'Selamat Datang di\nHealthcare Platform',
+    textAlign: TextAlign.center,
+    style: TextStyle(
+    color: Colors.white,
+    fontSize: 32,
+    fontWeight: FontWeight.bold,
+    height: 1.3,
+    ),
+    ),
+    SizedBox(height: 16),
+    Container(
+    width: screenSize.width * 0.3,
+    child: Text(
+    'Platform kesehatan terpercaya untuk menghubungkan pasien dengan dokter profesional',
+    textAlign: TextAlign.center,
+    style: TextStyle(
+    color: Colors.white.withOpacity(0.9),
+    fontSize: 16,
+    height: 1.5,
+    ),
+    ),
+    ),
+    ],
+    ),
+      ),
+      ),
 
         // Right side - Login form
         Expanded(
@@ -302,116 +309,116 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildLoginForm(bool isWeb) {
     return Container(
-      constraints: BoxConstraints(maxWidth: 400),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+        constraints: BoxConstraints(maxWidth: 400),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           // Email field
           _buildTextField(
-            controller: emailController,
-            label: 'Email',
-            icon: Icons.email,
-            isPassword: false,
-          ),
-          SizedBox(height: 20),
+          controller: emailController,
+          label: 'Email',
+          icon: Icons.email,
+          isPassword: false,
+        ),
+        SizedBox(height: 20),
 
-          // Password field
-          _buildTextField(
-            controller: passwordController,
-            label: 'Kata Sandi',
-            icon: Icons.lock,
-            isPassword: true,
-          ),
-          SizedBox(height: 30),
+        // Password field
+        _buildTextField(
+          controller: passwordController,
+          label: 'Kata Sandi',
+          icon: Icons.lock,
+          isPassword: true,
+        ),
+        SizedBox(height: 30),
 
-          // Login button
-          MouseRegion(
-            onEnter: (_) => setState(() => _isHoveringLogin = true),
-            onExit: (_) => setState(() => _isHoveringLogin = false),
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 200),
-              transform: Matrix4.identity()
-                ..translate(0, _isHoveringLogin ? -2 : 0),
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _login,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: _isHoveringLogin ? 8 : 4,
+        // Login button
+        MouseRegion(
+          onEnter: (_) => setState(() => _isHoveringLogin = true),
+          onExit: (_) => setState(() => _isHoveringLogin = false),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            transform: Matrix4.identity()
+              ..translate(0, _isHoveringLogin ? -2 : 0),
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _login,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
-                child: _isLoading
-                    ? SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    strokeWidth: 2,
-                  ),
-                )
-                    : Text(
-                  'Login',
-                  style: TextStyle(
+                elevation: _isHoveringLogin ? 8 : 4,
+              ),
+              child: _isLoading
+                  ? SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  strokeWidth: 2,
+                ),
+              )
+                  : Text(
+                'Login',
+                style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white
-                  ),
                 ),
               ),
             ),
           ),
-          SizedBox(height: 24),
+        ),
+        SizedBox(height: 24),
 
-          // Additional links
-          Row(
+        // Additional links
+        Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              MouseRegion(
-                onEnter: (_) => setState(() => _isHoveringRegister = true),
-                onExit: (_) => setState(() => _isHoveringRegister = false),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RegisterScreen()),
-                    );
-                  },
-                  child: Text(
-                    'Daftar Akun',
-                    style: TextStyle(
-                      color: Colors.teal,
-                      fontWeight: FontWeight.w500,
-                      decoration: _isHoveringRegister ? TextDecoration.underline : TextDecoration.none,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 20),
-              Text('|', style: TextStyle(color: Colors.grey)),
-              SizedBox(width: 20),
-              MouseRegion(
-                onEnter: (_) => setState(() => _isHoveringForgot = true),
-                onExit: (_) => setState(() => _isHoveringForgot = false),
-                child: GestureDetector(
-                  onTap: () {
-                    // Implement forgot password
-                  },
-                  child: Text(
-                    'Lupa Kata Sandi',
-                    style: TextStyle(
-                      color: Colors.teal,
-                      fontWeight: FontWeight.w500,
-                      decoration: _isHoveringForgot ? TextDecoration.underline : TextDecoration.none,
-                    ),
-                  ),
-                ),
-              ),
+            MouseRegion(
+            onEnter: (_) => setState(() => _isHoveringRegister = true),
+    onExit: (_) => setState(() => _isHoveringRegister = false),
+    child: GestureDetector(
+    onTap: () {
+    Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => RegisterScreen()),
+    );
+    },
+    child: Text(
+    'Daftar Akun',
+    style: TextStyle(
+    color: Colors.teal,
+    fontWeight: FontWeight.w500,
+    decoration: _isHoveringRegister ? TextDecoration.underline : TextDecoration.none,
+    ),
+    ),
+    ),
+    ),
+    SizedBox(width: 20),
+    Text('|', style: TextStyle(color: Colors.grey)),
+    SizedBox(width: 20),
+    MouseRegion(
+    onEnter: (_) => setState(() => _isHoveringForgot = true),
+    onExit: (_) => setState(() => _isHoveringForgot = false),
+    child: GestureDetector(
+    onTap: () {
+    // Implement forgot password
+    },
+    child: Text(
+    'Lupa Kata Sandi',
+    style: TextStyle(
+    color: Colors.teal,
+    fontWeight: FontWeight.w500,
+    decoration: _isHoveringForgot ? TextDecoration.underline : TextDecoration.none,
+    ),
+    ),
+    ),
+    ),
             ],
-          ),
-        ],
-      ),
+        ),
+          ],
+        ),
     );
   }
 
@@ -422,49 +429,49 @@ class _LoginScreenState extends State<LoginScreen> {
     required bool isPassword,
   }) {
     return Container(
-      decoration: BoxDecoration(
+        decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.teal.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
+    boxShadow: [
+    BoxShadow(
+    color: Colors.teal.withOpacity(0.1),
+    blurRadius: 10,
+    offset: Offset(0, 5),
+    ),
+    ],
+    ),
+    child: TextField(
+    controller: controller,
+    obscureText: isPassword && !_isPasswordVisible,
+    decoration: InputDecoration(
+    labelText: label,
+    labelStyle: TextStyle(color: Colors.teal),
+    prefixIcon: Icon(icon, color: Colors.teal),
+    suffixIcon: isPassword
+    ? IconButton(
+    icon: Icon(
+    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+    color: Colors.teal,
+    ),
+      onPressed: () {
+        setState(() {
+          _isPasswordVisible = !_isPasswordVisible;
+        });
+      },
+    )
+        : null,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
       ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword && !_isPasswordVisible,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.teal),
-          prefixIcon: Icon(icon, color: Colors.teal),
-          suffixIcon: isPassword
-              ? IconButton(
-            icon: Icon(
-              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-              color: Colors.teal,
-            ),
-            onPressed: () {
-              setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
-              });
-            },
-          )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
-          ),
-        ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 16,
       ),
+    ),
+    ),
     );
   }
 }
