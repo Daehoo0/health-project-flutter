@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  const apiKey = 'AIzaSyByWqlOF0TP5P_n-LdDJOi14JC9O7ipY7k';
+  const apiKey = 'AIzaSyBHSI4op6VAH_RYXQtmjQhrFMH20G1Q5PY';
   Gemini.init(apiKey: apiKey);
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:health_project_flutter/AuthProvider.dart';
+import 'package:health_project_flutter/pages/user/hitungkalori.dart';
 
 class AddFoodPage extends StatelessWidget {
   @override
@@ -19,7 +20,7 @@ class AddFoodPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => ScanImage()),
+                  MaterialPageRoute(builder: (context) => Caloridarifoto()),
                 );
               },
               child: Container(
