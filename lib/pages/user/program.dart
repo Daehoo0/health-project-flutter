@@ -207,7 +207,16 @@ class ProgramDetailPage extends StatelessWidget {
       DocumentSnapshot snapshotuser = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
       List<Map<String, dynamic>> datauser = [];
       datauser.add(snapshotuser.data() as Map<String, dynamic>);
+
       if(datauser[0]["saldo"] >= hargaprogram){
+        // Kurangi saldo pengguna
+        int saldoBaru = datauser[0]["saldo"] - hargaprogram;
+
+        // Update saldo pengguna di Firestore
+        await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).update({
+          'saldo': saldoBaru,
+        });
+
         DocumentSnapshot snapshot = await _firestore.collection('programdokter').doc(idprogram).get();
         List<Map<String, dynamic>> data = [];
         data.add(snapshot.data() as Map<String, dynamic>);
