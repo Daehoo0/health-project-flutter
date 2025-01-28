@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_project_flutter/AuthProvider.dart';
 import 'package:health_project_flutter/main.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import 'package:health_project_flutter/currency_format.dart';
 
 class ProgramListPage extends StatefulWidget {
@@ -254,7 +255,13 @@ class ProgramDetailPage extends StatelessWidget {
         }
         Navigator.pop(context);
       }else{
-        print("uang tidak cukup");
+        // Tampilkan SnackBar jika uang tidak cukup
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Uang tidak cukup!'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
     }
     return FutureBuilder<List<Map<String, dynamic>>>(

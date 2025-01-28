@@ -36,7 +36,7 @@ class _ProfilePageState extends State<ProfilePage> {
     DocumentSnapshot snapshot = await _firestore.collection('users').doc(context.read<DataLogin>().uiduser).get();
     List<Map<String, dynamic>> data = [];
     data.add(snapshot.data() as Map<String, dynamic>);
-    _base64String = data[0]["profile"];
+    _base64String = data[0]["profile"] ?? "";
     imageBytes = base64Decode(_base64String);
   }
 
