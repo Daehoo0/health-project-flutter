@@ -4,7 +4,6 @@ import 'package:health_project_flutter/AuthProvider.dart';
 import 'package:health_project_flutter/main.dart';
 import 'package:health_project_flutter/pages/user/tambahmakanan.dart';
 import 'package:health_project_flutter/pages/user/hitungkalori.dart';
-import 'package:health_project_flutter/pages/user/konsultasi.dart';
 import 'package:health_project_flutter/pages/user/caridokter.dart';
 import 'package:health_project_flutter/pages/user/program.dart';
 import 'package:health_project_flutter/pages/user/topup.dart';
@@ -37,7 +36,6 @@ class _HomeUserState extends State<HomeUser> {
     final List<Widget> _pages = [
       AddFoodPage(),
       Goals(userData: widget.userData), // Melewatkan userData ke Goals
-      ChatConsultationPage(),
       SearchDoctorPage(),
       ProgramListPage(),
       TopUpPage(),
@@ -51,7 +49,6 @@ class _HomeUserState extends State<HomeUser> {
     final List<String> _pageTitles = [
       'Tambah Makanan',
       'Goals',
-      'Konsultasi',
       'Cari Dokter',
       'Program',
       'Top Up Saldo',
@@ -80,7 +77,6 @@ class _HomeUserState extends State<HomeUser> {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.fastfood), label: 'Tambah'),
           BottomNavigationBarItem(icon: Icon(Icons.account_tree_sharp), label: 'Goals'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Konsultasi'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Dokter'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Program'),
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Top Up'),

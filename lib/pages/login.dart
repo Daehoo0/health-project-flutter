@@ -401,19 +401,6 @@ class _LoginScreenState extends State<LoginScreen> {
     MouseRegion(
     onEnter: (_) => setState(() => _isHoveringForgot = true),
     onExit: (_) => setState(() => _isHoveringForgot = false),
-    child: GestureDetector(
-    onTap: () {
-    // Implement forgot password
-    },
-    child: Text(
-    'Lupa Kata Sandi',
-    style: TextStyle(
-    color: Colors.teal,
-    fontWeight: FontWeight.w500,
-    decoration: _isHoveringForgot ? TextDecoration.underline : TextDecoration.none,
-    ),
-    ),
-    ),
     ),
             ],
         ),

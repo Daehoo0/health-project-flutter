@@ -5,6 +5,7 @@ import 'package:health_project_flutter/AuthProvider.dart';
 import 'package:health_project_flutter/main.dart';
 import 'package:intl/intl.dart';
 import 'package:health_project_flutter/currency_format.dart';
+import 'package:health_project_flutter/pages/user/konsultasi.dart';
 
 class ProgramListPage extends StatefulWidget {
   const ProgramListPage({super.key});
@@ -878,6 +879,7 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
               ),
             ),
           ),
+          // Di dalam bagian kode ProgramBerjalan, pada tombol "Chat with Doctor"
           bottomNavigationBar: Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -893,7 +895,11 @@ class _ProgramBerjalanState extends State<ProgramBerjalan> {
             child: SafeArea(
               child: ElevatedButton(
                 onPressed: () {
-                  // Chat doctor functionality
+                  // Navigasi ke halaman konsultasi
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ChatConsultationPage()),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal,
