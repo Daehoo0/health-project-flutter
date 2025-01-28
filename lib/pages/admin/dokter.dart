@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:health_project_flutter/pages/admin/permintaaddokter.dart';
@@ -44,8 +46,8 @@ class _DoctorPageState extends State<DoctorPage> {
             return GridView.builder(
               padding: EdgeInsets.all(8),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(), // Menyesuaikan jumlah kolom berdasarkan lebar layar
-                childAspectRatio: 3 / 4,  // Menyesuaikan tinggi card dengan rasio lebar dan tinggi
+                crossAxisCount: (MediaQuery.of(context).size.width / 250).floor(),
+                childAspectRatio: 3 / 4,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -57,6 +59,15 @@ class _DoctorPageState extends State<DoctorPage> {
                 final name = data.containsKey('name') ? data['name'] : 'Nama tidak tersedia';
                 final specialization = data.containsKey('specialization') ? data['specialization'] : 'Spesialisasi tidak tersedia';
 
+                Uint8List? imageBytes;
+                if (profile.isNotEmpty) {
+                  try {
+                    imageBytes = base64Decode(profile);
+                  } catch (e) {
+                    imageBytes = null; // Jika decoding gagal
+                  }
+                }
+
                 return Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
@@ -67,10 +78,10 @@ class _DoctorPageState extends State<DoctorPage> {
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        backgroundImage: profile.isEmpty
-                            ? null
-                            : NetworkImage(profile),
-                        child: profile.isEmpty
+                        backgroundImage: imageBytes != null
+                            ? MemoryImage(imageBytes)
+                            : null,
+                        child: imageBytes == null
                             ? Icon(Icons.person, size: 40)
                             : null,
                       ),

@@ -36,7 +36,6 @@ class _HomeUserState extends State<HomeUser> {
     print(context.read<DataLogin>().uiduser);
     final List<Widget> _pages = [
       AddFoodPage(),
-      CalorieCounterPage(),
       Goals(userData: widget.userData), // Melewatkan userData ke Goals
       ChatConsultationPage(),
       SearchDoctorPage(),
@@ -51,7 +50,6 @@ class _HomeUserState extends State<HomeUser> {
 
     final List<String> _pageTitles = [
       'Tambah Makanan',
-      'Hitung Kalori',
       'Goals',
       'Konsultasi',
       'Cari Dokter',
@@ -81,7 +79,6 @@ class _HomeUserState extends State<HomeUser> {
         unselectedItemColor: Colors.grey,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.fastfood), label: 'Tambah'),
-          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Kalori'),
           BottomNavigationBarItem(icon: Icon(Icons.account_tree_sharp), label: 'Goals'),
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Konsultasi'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Dokter'),

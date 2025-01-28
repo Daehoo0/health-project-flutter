@@ -127,7 +127,6 @@ class PersonalArticleDetailPage extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   // Article Title
                   Padding(
                     padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -141,7 +140,6 @@ class PersonalArticleDetailPage extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   // Image Section
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 16),
@@ -154,7 +152,6 @@ class PersonalArticleDetailPage extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   // Article Content
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
