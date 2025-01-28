@@ -46,29 +46,22 @@ class _GoalsState extends State<Goals> {
       final Gemini client = Gemini.instance;
 
       final promptMakanan =
-          "Carikan menu makanan yang cocok dan kebutuhan kalori sesuai tujuan $_selectedGoal. Orang ini memiliki tinggi badan ${widget
-          .userData['height']} cm, berat badan ${widget
-          .userData['weight']} kg, dan usia $_age tahun.";
+          "Carikan menu makanan yang cocok dan kebutuhan kalori sesuai tujuan $_selectedGoal. Orang ini memiliki tinggi badan ${widget.userData['height']} cm, berat badan ${widget.userData['weight']} kg, dan usia $_age tahun.";
 
       final responseMakanan = await client.text(promptMakanan);
 
       final promptOlahraga =
-          "Carikan jenis olahraga yang cocok sesuai tujuan $_selectedGoal dan berikan jumlah set dan repetisi yang direkomendasikan. Orang ini memiliki tinggi badan ${widget
-          .userData['height']} cm, berat badan ${widget
-          .userData['weight']} kg, dan usia $_age tahun.";
+          "Carikan jenis olahraga yang cocok sesuai tujuan $_selectedGoal dan berikan jumlah set dan repetisi yang direkomendasikan. Orang ini memiliki tinggi badan ${widget.userData['height']} cm, berat badan ${widget.userData['weight']} kg, dan usia $_age tahun.";
 
       final responseOlahraga = await client.text(promptOlahraga);
 
       setState(() {
-        _resultMakanan = responseMakanan?.output ??
-            'Tidak ada rekomendasi makanan yang ditemukan.';
-        _resultOlahraga = responseOlahraga?.output ??
-            'Tidak ada jadwal olahraga yang ditemukan.';
+        _resultMakanan = responseMakanan?.output ?? 'Tidak ada rekomendasi makanan yang ditemukan.';
+        _resultOlahraga = responseOlahraga?.output ?? 'Tidak ada jadwal olahraga yang ditemukan.';
       });
     } catch (e) {
       setState(() {
-        _resultMakanan =
-        'Gagal mendapatkan rekomendasi makanan: ${e.toString()}';
+        _resultMakanan = 'Gagal mendapatkan rekomendasi makanan: ${e.toString()}';
         _resultOlahraga = 'Gagal mendapatkan jadwal olahraga: ${e.toString()}';
       });
     } finally {
@@ -79,8 +72,7 @@ class _GoalsState extends State<Goals> {
   }
 
   Future<void> _saveToFirestore(String fieldName, bool isSavingMakanan) async {
-    if (isSavingMakanan ? _resultMakanan.isEmpty : _resultOlahraga.isEmpty)
-      return;
+    if (isSavingMakanan ? _resultMakanan.isEmpty : _resultOlahraga.isEmpty) return;
 
     setState(() {
       if (isSavingMakanan) {
@@ -92,9 +84,7 @@ class _GoalsState extends State<Goals> {
 
     try {
       final firestore = FirebaseFirestore.instance;
-      final uid = context
-          .read<DataLogin>()
-          .uiduser;
+      final uid = context.read<DataLogin>().uiduser;
 
       DocumentSnapshot userDoc =
       await firestore.collection('users').doc(uid).get();
@@ -268,8 +258,7 @@ class _GoalsState extends State<Goals> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: Colors.teal, width: 2),
+                      borderSide: const BorderSide(color: Colors.teal, width: 2),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -277,8 +266,7 @@ class _GoalsState extends State<Goals> {
                     ),
                     filled: true,
                     fillColor: Colors.white,
-                    prefixIcon: const Icon(
-                        Icons.calendar_today, color: Colors.teal),
+                    prefixIcon: const Icon(Icons.calendar_today, color: Colors.teal),
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
@@ -311,8 +299,7 @@ class _GoalsState extends State<Goals> {
                     )
                         : const Text(
                       'Generate Program',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -342,12 +329,10 @@ class _GoalsState extends State<Goals> {
                             child: ElevatedButton.icon(
                               onPressed: _isSavingMakanan
                                   ? null
-                                  : () =>
-                                  _saveToFirestore('Menu Makanan', true),
+                                  : () => _saveToFirestore('Menu Makanan', true),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.orange,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 16),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -370,12 +355,10 @@ class _GoalsState extends State<Goals> {
                             child: ElevatedButton.icon(
                               onPressed: _isSavingOlahraga
                                   ? null
-                                  : () =>
-                                  _saveToFirestore('Program Olahraga', false),
+                                  : () => _saveToFirestore('Program Olahraga', false),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 16),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -435,8 +418,7 @@ class _GoalsState extends State<Goals> {
     );
   }
 
-  Widget _buildResultCard(String title, String content, IconData icon,
-      Color color) {
+  Widget _buildResultCard(String title, String content, IconData icon, Color color) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -489,5 +471,3 @@ class _GoalsState extends State<Goals> {
         ),
       ),
     );
-  }
-}
